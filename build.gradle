@@ -1,0 +1,86 @@
+import org.gradle.api.publish.maven.MavenPublication
+
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'maven-publish'
+}
+
+group 'me.hypherionmc'
+version project.version
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven { url "https://maven.hypherionmc.me/releases" }
+    maven { url "https://m2.dv8tion.net/releases" }
+    maven { url "https://m2.chew.pro/releases" }
+}
+
+dependencies {
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4j_ver
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j_ver
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
+    compile("org.apache.commons:commons-collections4:4.1")
+
+    compile "pw.chew:jda-chewtils:${jdautils_ver}"
+    compile("net.dv8tion:JDA:$jdaVersion") { exclude module: 'opus-java' }
+    compile("club.minnced:discord-webhooks:0.5.8")
+
+    compile "me.hypherionmc.night-config:toml:${nightconf_ver}"
+    compile "me.hypherionmc:JQLite:1.0.4"
+}
+
+jar {
+    manifest {
+        attributes(
+                'FMLModType': 'LIBRARY'
+        )
+    }
+    from {
+        exclude '**/versions/9/*'
+        exclude 'module-info.class'
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+configurations {
+    runtime {
+        transitive = true
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.runtime]
+    dependencies {
+        exclude(dependency('org.apache.logging.log4j:log4j-core:.*'))
+        exclude(dependency('org.apache.logging.log4j:log4j-api:.*'))
+        exclude(dependency('com.google.code.gson:.*'))
+        //exclude(dependency('org.apache.commons:.*'))
+        //include(dependency("org.apache.commons:commons-collections4:4.1"))
+        exclude 'META-INF/versions/9/**'
+        exclude 'module-info.class'
+    }
+    classifier ''
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact(shadowJar) {
+                builtBy shadowJar
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url System.getenv("MAVEN_URL")
+            credentials {
+                username System.getenv("MAVEN_USER")
+                password System.getenv("MAVEN_PASS")
+            }
+        }
+    }
+}
