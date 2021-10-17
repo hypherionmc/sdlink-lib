@@ -74,6 +74,8 @@ public class WhitelistCommand extends Command {
                                 }
 
                                 event.reply(response);
+                            } else {
+                                event.reply(response);
                             }
                         }
                     }
@@ -94,6 +96,8 @@ public class WhitelistCommand extends Command {
                                 if (response.toLowerCase().contains("has been removed from the whitelist")) {
 
                                     whitelistTable.delete();
+                                    event.reply(response);
+                                } else {
                                     event.reply(response);
                                 }
                             }
