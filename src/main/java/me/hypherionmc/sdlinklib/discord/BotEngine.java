@@ -58,6 +58,10 @@ public class BotEngine {
         }
     }
 
+    public boolean isBotReady() {
+        return modConfig != null && modConfig.general.enabled && jda != null && jda.getStatus() == JDA.Status.CONNECTED;
+    }
+
     public void initBot() {
 
         if (modConfig == null || modConfig.general.botToken.isEmpty()) {
