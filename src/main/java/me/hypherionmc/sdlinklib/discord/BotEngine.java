@@ -9,13 +9,13 @@ import me.hypherionmc.jqlite.DatabaseEngine;
 import me.hypherionmc.sdlinklib.config.ConfigEngine;
 import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
+import me.hypherionmc.sdlinklib.discord.commands.HelpCommand;
 import me.hypherionmc.sdlinklib.discord.commands.PlayerListCommand;
 import me.hypherionmc.sdlinklib.discord.commands.WhitelistCommand;
 import me.hypherionmc.sdlinklib.discord.utils.DiscordEventHandler;
 import me.hypherionmc.sdlinklib.discord.utils.MinecraftEventHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.hooks.InterfacedEventManager;
@@ -33,7 +33,6 @@ public class BotEngine {
     private CommandClient commandClient;
     private WebhookClient webhookClient;
     private final MinecraftEventHandler minecraftEventHandler;
-    private final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);
 
     private final DatabaseEngine databaseEngine = new DatabaseEngine("sdlink-whitelist");
     private WhitelistTable whitelistTable = new WhitelistTable();
@@ -70,7 +69,7 @@ public class BotEngine {
 
             try {
                 if (modConfig.general.enabled) {
-                    jda = JDABuilder.createLight(modConfig.general.botToken, GatewayIntent.GUILD_MESSAGES)
+                    jda = JDABuilder.createLight(modConfig.general.botToken, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS)
                             .setMemberCachePolicy(MemberCachePolicy.NONE)
                             .setChunkingFilter(ChunkingFilter.ALL)
                             .setBulkDeleteSplittingEnabled(false)
@@ -78,28 +77,17 @@ public class BotEngine {
                             .build();
 
                     CommandClientBuilder clientBuilder = new CommandClientBuilder();
-                    clientBuilder.setOwnerId("");
+                    clientBuilder.setOwnerId("354707828298088459");
                     clientBuilder.setPrefix(modConfig.general.botPrefix);
+                    clientBuilder.setHelpWord("help");
+                    clientBuilder.useHelpBuilder(false);
 
-                    //clientBuilder.setActivity(Activity.playing(""));
                     commandClient = clientBuilder.build();
                     commandClient.addCommand(new PlayerListCommand(minecraftEventHandler));
                     commandClient.addCommand(new WhitelistCommand(whitelistTable, minecraftEventHandler, modConfig));
+                    commandClient.addCommand(new HelpCommand(this));
                     jda.addEventListener(commandClient, new DiscordEventHandler(minecraftEventHandler, modConfig));
                     jda.setAutoReconnect(true);
-
-                    if (jda.getStatus() == JDA.Status.CONNECTED) {
-                        ConfigEngine.logger.info("Successfully Connected to Discord");
-
-                        threadPool.scheduleAtFixedRate(() -> {
-                            Activity act = Activity.of(Activity.ActivityType.DEFAULT, modConfig.general.botStatus
-                                    .replace("%players%", String.valueOf(minecraftEventHandler.getPlayerCount()))
-                                    .replace("%maxplayers%", String.valueOf(minecraftEventHandler.getMaxPlayerCount())));
-
-                            jda.getPresence().setActivity(act);
-
-                        }, 0, modConfig.general.activityUpdateInterval, TimeUnit.SECONDS);
-                    }
                 }
             } catch (Exception e) {
                 if (modConfig.general.debugging) {
@@ -170,5 +158,9 @@ public class BotEngine {
         builder.setAvatarUrl(avatarUrl);
         builder.setContent(isChat ? message : "*" + message + "*");
         webhookClient.send(builder.build());
+    }
+
+    public CommandClient getCommandClient() {
+        return this.commandClient;
     }
 }

@@ -18,7 +18,7 @@ public class GeneralConfig {
     public boolean debugging = false;
 
     @Path("activityUpdateInterval")
-    public int activityUpdateInterval = 120;
+    public int activityUpdateInterval = 30;
 
     @Path("botPrefix")
     @SpecComment("The prefix to use for bot commands. Example: ~players")
@@ -29,7 +29,7 @@ public class GeneralConfig {
     public boolean whitelisting = false;
 
     @Path("botStatus")
-    @SpecComment("A status to display on the bot. You can use %players% and %maxplayers% to show the number of players on the server")
-    public String botStatus = "Playing Minecraft";
+    @SpecComment("Do not add Playing. A status to display on the bot. You can use %players% and %maxplayers% to show the number of players on the server")
+    public String botStatus = "Minecraft";
 
 }
