@@ -36,7 +36,7 @@ public class WhitelistCommand extends Command {
             EmbedBuilder embedBuilder = new EmbedBuilder();
             embedBuilder.setTitle("Whitelist Command Help");
             embedBuilder.setDescription(
-                    "This command allows players to whitelist/unwhitelist themselves on your server. Admins/Members with Kick Members permission can unwhitelist anyone\r\n\r\n" +
+                    "This command allows players to whitelist/un-whitelist themselves on your server. Admins/Members with Kick Members permission can un-whitelist anyone\r\n\r\n" +
                     "Command Usage:\r\n" +
                     "`whitelist add playername` -> Add a player to the whitelist\r\n" +
                     "`whitelist remove playername` -> Remove a player from the whitelist\r\n" +
@@ -85,7 +85,7 @@ public class WhitelistCommand extends Command {
                         whitelistTable.fetch("discordID = '" + event.getAuthor().getIdLong() + "'");
 
                         if ((whitelistTable.username == null || !whitelistTable.username.equalsIgnoreCase(args[1])) && (!event.getMember().hasPermission(Permission.ADMINISTRATOR) || !event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
-                            event.reply("Sorry, you cannot unwhitelist this player");
+                            event.reply("Sorry, you cannot un-whitelist this player");
                         } else {
                             Pair<String, String> player = PlayerUtils.fetchUUID(args[1]);
 

@@ -22,11 +22,12 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4j_ver
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j_ver
     compile group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
-    compile("org.apache.commons:commons-collections4:4.1")
+    compile('org.apache.commons:commons-collections4:4.4')
 
     compile "pw.chew:jda-chewtils:${jdautils_ver}"
     compile("net.dv8tion:JDA:$jdaVersion") { exclude module: 'opus-java' }
-    compile("club.minnced:discord-webhooks:0.5.8")
+    compile('club.minnced:discord-webhooks:0.7.2')
+    compile group: 'com.github.oshi', name: 'oshi-core', version: '5.8.3'
 
     compile "me.hypherionmc.night-config:toml:${nightconf_ver}"
     compile "me.hypherionmc:JQLite:1.0.4"
@@ -67,6 +68,7 @@ shadowJar {
         relocate 'org.slf4j', 'shadow.slf4j'
         relocate 'javax.annotation', 'shadow.javax.annotation'
         relocate 'gnu.trove', 'shadow.gnu.trove'
+        relocate 'com.github.oshi', 'shadow.github.oshi'
     }
     classifier ''
 }

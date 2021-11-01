@@ -61,4 +61,8 @@ public class ChatSettingsConfig {
     @SpecComment("Should Tell Raw messages be posted")
     public boolean sendTellRaw = true;
 
+    @Path("inviteCommandEnabled")
+    @SpecComment("Should the ~discord command be enabled")
+    public boolean inviteCommandEnabled = false;
+
 }

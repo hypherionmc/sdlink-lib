@@ -29,4 +29,8 @@ public class MessageConfig {
     @SpecComment("Player Left Message. Use %player% to display the player name")
     public String playerLeft = "%player% has left the server!";
 
+    @Path("inviteMessage")
+    @SpecComment("The message to show when someone uses ~discord command. You can use %inviteurl%")
+    public String inviteMessage = "Hey, check out our discord server here -> %inviteurl%";
+
 }

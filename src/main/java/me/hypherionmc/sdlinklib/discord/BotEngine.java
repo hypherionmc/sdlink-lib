@@ -8,15 +8,15 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import me.hypherionmc.jqlite.DatabaseEngine;
 import me.hypherionmc.sdlinklib.config.ConfigEngine;
 import me.hypherionmc.sdlinklib.config.ModConfig;
+import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
-import me.hypherionmc.sdlinklib.discord.commands.HelpCommand;
-import me.hypherionmc.sdlinklib.discord.commands.PlayerListCommand;
-import me.hypherionmc.sdlinklib.discord.commands.WhitelistCommand;
+import me.hypherionmc.sdlinklib.discord.commands.*;
 import me.hypherionmc.sdlinklib.discord.utils.DiscordEventHandler;
 import me.hypherionmc.sdlinklib.discord.utils.MinecraftEventHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.hooks.InterfacedEventManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -36,12 +36,14 @@ public class BotEngine {
 
     private final DatabaseEngine databaseEngine = new DatabaseEngine("sdlink-whitelist");
     private WhitelistTable whitelistTable = new WhitelistTable();
+    private UserTable userTable = new UserTable();
 
     public BotEngine(ModConfig modConfig, MinecraftEventHandler minecraftEventHandler) {
         this.modConfig = modConfig;
         this.minecraftEventHandler = minecraftEventHandler;
 
         databaseEngine.registerTable(whitelistTable);
+        databaseEngine.registerTable(userTable);
 
         if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty()) {
             ConfigEngine.logger.info("[SDLink] Webhooks will be enabled");
@@ -85,6 +87,10 @@ public class BotEngine {
                     commandClient = clientBuilder.build();
                     commandClient.addCommand(new PlayerListCommand(minecraftEventHandler));
                     commandClient.addCommand(new WhitelistCommand(whitelistTable, minecraftEventHandler, modConfig));
+                    commandClient.addCommand(new ServerStatusCommand(modConfig, minecraftEventHandler));
+                    commandClient.addCommand(new StopServerCommand(minecraftEventHandler));
+                    commandClient.addCommand(new LinkCommand(userTable, modConfig));
+                    commandClient.addCommand(new LinkedCommand(userTable));
                     commandClient.addCommand(new HelpCommand(this));
                     jda.addEventListener(commandClient, new DiscordEventHandler(minecraftEventHandler, modConfig));
                     jda.setAutoReconnect(true);
@@ -158,6 +164,21 @@ public class BotEngine {
         builder.setAvatarUrl(avatarUrl);
         builder.setContent(isChat ? message : "*" + message + "*");
         webhookClient.send(builder.build());
+    }
+
+    public String getDiscordName(String mcName) {
+
+        if (jda != null && jda.getStatus() == JDA.Status.CONNECTED) {
+            userTable = new UserTable();
+            userTable.fetch("username = '" + mcName + "'");
+
+            if (userTable.discordID != 0 && jda.getUserById(userTable.discordID) != null) {
+                User discordUser = jda.getUserById(userTable.discordID);
+                return mcName + " is linked to discord account: " + discordUser.getName() + "#" + discordUser.getDiscriminator();
+            }
+        }
+
+        return "Could not find result for " + mcName;
     }
 
     public CommandClient getCommandClient() {
