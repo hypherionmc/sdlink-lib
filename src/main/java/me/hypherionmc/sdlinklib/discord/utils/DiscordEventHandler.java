@@ -42,7 +42,7 @@ public class DiscordEventHandler extends ListenerAdapter {
         threadPool.scheduleAtFixedRate(() -> {
             try {
                 if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
-                    Activity act = Activity.of(Activity.ActivityType.PLAYING, modConfig.general.botStatus
+                    Activity act = Activity.of(Activity.ActivityType.DEFAULT, modConfig.general.botStatus
                             .replace("%players%", String.valueOf(eventHandler.getPlayerCount()))
                             .replace("%maxplayers%", String.valueOf(eventHandler.getMaxPlayerCount())));
 
@@ -77,6 +77,6 @@ public class DiscordEventHandler extends ListenerAdapter {
     }
 
     public void shutdown() {
-        threadPool.shutdown();
+        threadPool.shutdownNow();
     }
 }
