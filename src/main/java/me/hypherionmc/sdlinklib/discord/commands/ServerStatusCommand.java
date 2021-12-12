@@ -92,7 +92,7 @@ public class ServerStatusCommand extends Command {
 
         stringBuilder
                 .append("**Whitelisting:**\r\n```\r\n")
-                .append(eventHandler.whiteListingEnabled() ? "Enabled" : "Disabled")
+                .append(config.general.whitelisting ? "Enabled" : "Disabled")
                 .append("```\r\n");
 
         builder.setDescription(stringBuilder.toString());

@@ -13,7 +13,7 @@ targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    maven { url "https://maven.hypherionmc.me/releases" }
+    maven { url "https://maven.firstdarkdev.xyz/releases" }
     maven { url "https://m2.dv8tion.net/releases" }
     maven { url "https://m2.chew.pro/releases" }
 }
@@ -60,6 +60,7 @@ shadowJar {
         exclude(dependency('org.apache.commons:commons-lang3:.*'))
         exclude(dependency('com.google.code.gson:.*'))
         exclude(dependency('javax:.*'))
+        exclude(dependency('org.jetbrains:.*'))
         exclude 'META-INF/versions/9/**'
         exclude 'module-info.class'
 

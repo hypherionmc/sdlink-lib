@@ -31,8 +31,8 @@ public class BotEngine {
     private final ModConfig modConfig;
     private JDA jda;
     private CommandClient commandClient;
-    private WebhookClient webhookClient;
-    private final MinecraftEventHandler minecraftEventHandler;
+    private WebhookClient webhookClient;private final MinecraftEventHandler minecraftEventHandler;
+    private DiscordEventHandler discordEventHandler;
 
     private final DatabaseEngine databaseEngine = new DatabaseEngine("sdlink-whitelist");
     private WhitelistTable whitelistTable = new WhitelistTable();
@@ -84,6 +84,8 @@ public class BotEngine {
                     clientBuilder.setHelpWord("help");
                     clientBuilder.useHelpBuilder(false);
 
+                    discordEventHandler = new DiscordEventHandler(minecraftEventHandler, modConfig);
+
                     commandClient = clientBuilder.build();
                     commandClient.addCommand(new PlayerListCommand(minecraftEventHandler));
                     commandClient.addCommand(new WhitelistCommand(whitelistTable, minecraftEventHandler, modConfig));
@@ -92,7 +94,7 @@ public class BotEngine {
                     commandClient.addCommand(new LinkCommand(userTable, modConfig));
                     commandClient.addCommand(new LinkedCommand(userTable));
                     commandClient.addCommand(new HelpCommand(this));
-                    jda.addEventListener(commandClient, new DiscordEventHandler(minecraftEventHandler, modConfig));
+                    jda.addEventListener(commandClient, discordEventHandler);
                     jda.setAutoReconnect(true);
                 }
             } catch (Exception e) {
@@ -114,18 +116,17 @@ public class BotEngine {
         }
     }
 
-    public void initWhitelisting() {
-        if (jda != null && modConfig.general.whitelisting) {
-            if (!minecraftEventHandler.whiteListingEnabled()) {
-                ConfigEngine.logger.warn("Serverside Whitelisting is disabled. Whitelist command will not work");
-            }
-        }
-    }
-
     public void shutdownBot() {
         if (jda != null && jda.getStatus() == JDA.Status.CONNECTED) {
             jda.shutdownNow();
         }
+        if (webhookClient != null) {
+            webhookClient.close();
+        }
+        if (discordEventHandler != null) {
+            discordEventHandler.shutdown();
+        }
+
     }
 
     public void sendToDiscord(String message, String username, String uuid, boolean isChat) {
@@ -154,6 +155,7 @@ public class BotEngine {
 
     private void sendWebhookMessage(String username, String message, String uuid, boolean isChat) {
         String avatarUrl = modConfig.webhookConfig.serverAvatar;
+        message = message.replace("<@", "");
 
         if (!uuid.isEmpty() && !username.equalsIgnoreCase("server")) {
             avatarUrl = "https://crafatar.com/avatars/" + uuid;

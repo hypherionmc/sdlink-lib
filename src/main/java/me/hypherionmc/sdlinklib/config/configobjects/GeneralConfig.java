@@ -30,6 +30,10 @@ public class GeneralConfig {
     @SpecComment("Should the bot be allowed to whitelist/un-whitelist players")
     public boolean whitelisting = false;
 
+    @Path("onlyAdminsWhitelist")
+    @SpecComment("Should only admins be allowed to whitelist players")
+    public boolean adminWhitelistOnly = false;
+
     @Path("botStatus")
     @SpecComment("Do not add Playing. A status to display on the bot. You can use %players% and %maxplayers% to show the number of players on the server")
     public String botStatus = "Minecraft";

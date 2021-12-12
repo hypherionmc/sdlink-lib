@@ -13,7 +13,7 @@ public class ConfigEngine {
 
     private final File configPath;
     public static final Logger logger = LogManager.getLogger("Simple Discord Link");
-    public static int configVer = 2;
+    public static int configVer = 3;
 
     private ModConfig modConfig;
 

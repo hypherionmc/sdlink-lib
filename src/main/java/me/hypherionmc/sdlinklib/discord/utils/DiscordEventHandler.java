@@ -7,11 +7,10 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.ReadyEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +27,7 @@ public class DiscordEventHandler extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (event.getChannel().getIdLong() == modConfig.chatConfig.channelID) {
             if ((modConfig.chatConfig.ignoreBots && !event.getAuthor().isBot()) && !event.isWebhookMessage() && event.getAuthor() != event.getJDA().getSelfUser()) {
                 eventHandler.discordMessageReceived(event.getAuthor().getName(), event.getMessage().getContentStripped());
@@ -43,7 +42,7 @@ public class DiscordEventHandler extends ListenerAdapter {
         threadPool.scheduleAtFixedRate(() -> {
             try {
                 if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
-                    Activity act = Activity.of(Activity.ActivityType.DEFAULT, modConfig.general.botStatus
+                    Activity act = Activity.of(Activity.ActivityType.PLAYING, modConfig.general.botStatus
                             .replace("%players%", String.valueOf(eventHandler.getPlayerCount()))
                             .replace("%maxplayers%", String.valueOf(eventHandler.getMaxPlayerCount())));
 
@@ -75,5 +74,9 @@ public class DiscordEventHandler extends ListenerAdapter {
                 }
             }
         }, 0, 11, TimeUnit.MINUTES);
+    }
+
+    public void shutdown() {
+        threadPool.shutdown();
     }
 }
