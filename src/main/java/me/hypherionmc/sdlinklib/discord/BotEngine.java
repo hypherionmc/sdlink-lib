@@ -1,8 +1,5 @@
 package me.hypherionmc.sdlinklib.discord;
 
-import club.minnced.discord.webhook.WebhookClient;
-import club.minnced.discord.webhook.WebhookClientBuilder;
-import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import me.hypherionmc.jqlite.DatabaseEngine;
@@ -22,16 +19,20 @@ import net.dv8tion.jda.api.hooks.InterfacedEventManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import okhttp3.OkHttpClient;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.*;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class BotEngine {
 
     private final ModConfig modConfig;
     private JDA jda;
     private CommandClient commandClient;
-    private WebhookClient webhookClient;private final MinecraftEventHandler minecraftEventHandler;
+    private final MinecraftEventHandler minecraftEventHandler;
     private DiscordEventHandler discordEventHandler;
 
     private final DatabaseEngine databaseEngine = new DatabaseEngine("sdlink-whitelist");
@@ -44,19 +45,6 @@ public class BotEngine {
 
         databaseEngine.registerTable(whitelistTable);
         databaseEngine.registerTable(userTable);
-
-        if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty()) {
-            ConfigEngine.logger.info("[SDLink] Webhooks will be enabled");
-            WebhookClientBuilder builder = new WebhookClientBuilder(modConfig.webhookConfig.webhookurl);
-            builder.setThreadFactory((job) -> {
-                Thread thread = new Thread(job);
-                thread.setName("Webhook Thread");
-                thread.setDaemon(true);
-                return thread;
-            });
-            builder.setWait(true);
-            webhookClient = builder.build();
-        }
     }
 
     public boolean isBotReady() {
@@ -96,6 +84,10 @@ public class BotEngine {
                     commandClient.addCommand(new HelpCommand(this));
                     jda.addEventListener(commandClient, discordEventHandler);
                     jda.setAutoReconnect(true);
+
+                    if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty()) {
+                        ConfigEngine.logger.info("[SDLink] Webhooks will be enabled");
+                    }
                 }
             } catch (Exception e) {
                 if (modConfig.general.debugging) {
@@ -116,22 +108,34 @@ public class BotEngine {
         }
     }
 
+    public void initWhitelisting() {
+        if (jda != null && modConfig.general.whitelisting) {
+            if (!minecraftEventHandler.whiteListingEnabled()) {
+                ConfigEngine.logger.warn("Serverside Whitelisting is disabled. Whitelist command will not work");
+            }
+        }
+    }
+
     public void shutdownBot() {
-        if (jda != null && jda.getStatus() == JDA.Status.CONNECTED) {
+        if (jda != null) {
+            OkHttpClient client = jda.getHttpClient();
+            client.connectionPool().evictAll();
+            client.dispatcher().cancelAll();
+            client.dispatcher().executorService().shutdownNow();
             jda.shutdownNow();
         }
-        if (webhookClient != null) {
-            webhookClient.close();
-        }
         if (discordEventHandler != null) {
-            discordEventHandler.shutdown();
+            // Dirty Workaround for JDA not shutting down properly
+            discordEventHandler.getThreadPool().schedule(() -> {
+                discordEventHandler.shutdown();
+                System.exit(1);
+            }, 10, TimeUnit.SECONDS);
         }
-
     }
 
     public void sendToDiscord(String message, String username, String uuid, boolean isChat) {
         if (jda != null && jda.getStatus() == JDA.Status.CONNECTED) {
-            if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty() && webhookClient != null) {
+            if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty()) {
                 sendWebhookMessage(username, message, uuid, isChat);
             } else {
                 TextChannel channel;
@@ -161,15 +165,20 @@ public class BotEngine {
             avatarUrl = "https://crafatar.com/avatars/" + uuid;
         }
 
-        WebhookMessageBuilder builder = new WebhookMessageBuilder();
-        builder.setUsername(isChat ? username : "Minecraft Server");
-        builder.setAvatarUrl(avatarUrl);
-        builder.setContent(isChat ? message : "*" + message + "*");
-        webhookClient.send(builder.build());
+        WebhookMessageClient webhookMessageClient = new WebhookMessageClient(modConfig.webhookConfig.webhookurl);
+        webhookMessageClient.setUsername(isChat ? username : "Minecraft Server");
+        webhookMessageClient.setAvatarUrl(avatarUrl);
+        webhookMessageClient.setContent(isChat ? message : "*" + message + "*");
+        try {
+            webhookMessageClient.execute();
+        } catch (Exception e) {
+            if (modConfig.general.debugging) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public String getDiscordName(String mcName) {
-
         if (jda != null && jda.getStatus() == JDA.Status.CONNECTED) {
             userTable = new UserTable();
             userTable.fetch("username = '" + mcName + "'");
@@ -179,11 +188,20 @@ public class BotEngine {
                 return mcName + " is linked to discord account: " + discordUser.getName() + "#" + discordUser.getDiscriminator();
             }
         }
-
         return "Could not find result for " + mcName;
     }
 
     public CommandClient getCommandClient() {
         return this.commandClient;
+    }
+
+    public boolean isPlayerWhitelisted(String username, String uuid) {
+        if (modConfig.general.whitelisting) {
+            whitelistTable = new WhitelistTable();
+            List<WhitelistTable> tableList = whitelistTable.fetchAll("username = '" + username + "' AND uuid = '" + uuid + "'");
+            return !tableList.isEmpty();
+        } else {
+            return true;
+        }
     }
 }

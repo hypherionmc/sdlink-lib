@@ -26,7 +26,7 @@ dependencies {
 
     compile "pw.chew:jda-chewtils:${jdautils_ver}"
     compile("net.dv8tion:JDA:$jdaVersion") { exclude module: 'opus-java' }
-    compile('club.minnced:discord-webhooks:0.7.2')
+    compile group: 'org.json', name: 'json', version: '20211205'
     compile group: 'com.github.oshi', name: 'oshi-core', version: '5.8.3'
 
     compile "me.hypherionmc.night-config:toml:${nightconf_ver}"

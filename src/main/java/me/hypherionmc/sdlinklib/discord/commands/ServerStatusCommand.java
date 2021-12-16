@@ -75,12 +75,6 @@ public class ServerStatusCommand extends Command {
                 .append("```\r\n");
 
         stringBuilder
-                .append("**Average Ticks Per Second:**\r\n```\r\n")
-                .append(String.valueOf(eventHandler.getTPS()).replace(".0", ""))
-                .append(" tps")
-                .append("```\r\n");
-
-        stringBuilder
                 .append("**Server Version:**\r\n```\r\n")
                 .append(eventHandler.getServerVersion())
                 .append("```\r\n");
@@ -92,7 +86,7 @@ public class ServerStatusCommand extends Command {
 
         stringBuilder
                 .append("**Whitelisting:**\r\n```\r\n")
-                .append(config.general.whitelisting ? "Enabled" : "Disabled")
+                .append(eventHandler.whiteListingEnabled() ? "Enabled" : "Disabled")
                 .append("```\r\n");
 
         builder.setDescription(stringBuilder.toString());

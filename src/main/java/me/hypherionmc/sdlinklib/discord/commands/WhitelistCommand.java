@@ -37,75 +37,90 @@ public class WhitelistCommand extends Command {
             embedBuilder.setTitle("Whitelist Command Help");
             embedBuilder.setDescription(
                     "This command allows players to whitelist/un-whitelist themselves on your server. Admins/Members with Kick Members permission can un-whitelist anyone\r\n\r\n" +
-                    "Command Usage:\r\n" +
-                    "`whitelist add playername` -> Add a player to the whitelist\r\n" +
-                    "`whitelist remove playername` -> Remove a player from the whitelist\r\n" +
-                    "`whitelist list` -> View whitelisted players (Admins/Moderators only)"
-                    );
+                            "Command Usage:\r\n" +
+                            "`whitelist add playername` -> Add a player to the whitelist\r\n" +
+                            "`whitelist remove playername` -> Remove a player from the whitelist\r\n" +
+                            "`whitelist list` -> View whitelisted players (Admins/Moderators only)"
+            );
 
             event.reply(embedBuilder.build());
 
         } else {
             if (modConfig.general.whitelisting) {
-                String[] args = event.getArgs().split(" ");
 
-                if (args[0].equalsIgnoreCase("add")) {
+                if (eventHandler.whiteListingEnabled()) {
+
                     if (modConfig.general.adminWhitelistOnly && (!event.getMember().hasPermission(Permission.ADMINISTRATOR) || !event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
-                        event.reply("Sorry, only Admins can whitelist players");
+                        event.reply("Sorry, only Admins/Members with Kick Permissions can whitelist players");
                     } else {
-                        Pair<String, String> player = PlayerUtils.fetchUUID(args[1]);
+                        String[] args = event.getArgs().split(" ");
 
-                        if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
-                            event.reply("Failed to fetch info for player " + args[1]);
-                        } else {
-                            whitelistTable = new WhitelistTable();
-                            whitelistTable.username = player.getLeft();
-                            whitelistTable.UUID = player.getRight();
-                            whitelistTable.discordID = event.getAuthor().getIdLong();
+                        if (args[0].equalsIgnoreCase("add")) {
+                            Pair<String, String> player = PlayerUtils.fetchUUID(args[1]);
 
-                            List<WhitelistTable> tables = whitelistTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
-                            if (tables.isEmpty()) {
-                                whitelistTable.insert();
-                                event.reply(name + " has been whitelisted");
+                            if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
+                                event.reply("Failed to fetch info for player " + args[1]);
                             } else {
-                                event.reply(name + " has already been whitelisted");
+                                String response = eventHandler.whitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()));
+
+                                if (response.toLowerCase().contains("now whitelisted")) {
+                                    whitelistTable = new WhitelistTable();
+                                    whitelistTable.username = player.getLeft();
+                                    whitelistTable.UUID = player.getRight();
+                                    whitelistTable.discordID = event.getAuthor().getIdLong();
+
+                                    List<WhitelistTable> tables = whitelistTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
+                                    if (tables.isEmpty()) {
+                                        whitelistTable.insert();
+                                    } else {
+                                        whitelistTable.update();
+                                    }
+
+                                    event.reply(response);
+                                } else {
+                                    event.reply(response);
+                                }
                             }
                         }
-                    }
-                }
 
-                if (args[0].equalsIgnoreCase("remove")) {
-                    whitelistTable = new WhitelistTable();
-                    whitelistTable.fetch("discordID = '" + event.getAuthor().getIdLong() + "'");
+                        if (args[0].equalsIgnoreCase("remove")) {
+                            whitelistTable = new WhitelistTable();
+                            whitelistTable.fetch("discordID = '" + event.getAuthor().getIdLong() + "'");
 
-                    if ((whitelistTable.username == null || !whitelistTable.username.equalsIgnoreCase(args[1])) && (!event.getMember().hasPermission(Permission.ADMINISTRATOR) || !event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
-                        event.reply("Sorry, you cannot un-whitelist this player");
-                    } else {
-                        Pair<String, String> player = PlayerUtils.fetchUUID(args[1]);
+                            if ((whitelistTable.username == null || !whitelistTable.username.equalsIgnoreCase(args[1])) && (!event.getMember().hasPermission(Permission.ADMINISTRATOR) || !event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
+                                event.reply("Sorry, you cannot un-whitelist this player");
+                            } else {
+                                Pair<String, String> player = PlayerUtils.fetchUUID(args[1]);
 
-                        if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
-                            event.reply("Failed to fetch info for player " + args[1]);
-                        } else {
-                            if (whitelistTable.delete()) {
-                                event.reply(whitelistTable.username + " has been removed from the whitelist");
+                                if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
+                                    event.reply("Failed to fetch info for player " + args[1]);
+                                } else {
+                                    String response = eventHandler.unWhitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()));
+                                    if (response.toLowerCase().contains("has been removed from the whitelist")) {
+
+                                        whitelistTable.delete();
+                                        event.reply(response);
+                                    } else {
+                                        event.reply(response);
+                                    }
+                                }
                             }
                         }
+
+                        if (args[0].equalsIgnoreCase("list") && (event.getMember().hasPermission(Permission.ADMINISTRATOR) || event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
+                            List<String> string = eventHandler.getWhitelistedPlayers();
+                            event.reply("**Whitelisted Players:**\n\n" + ArrayUtils.toString(string));
+                        }
                     }
+
+                } else {
+                    event.reply("Whitelisting is not enabled on your server");
                 }
 
-                if (args[0].equalsIgnoreCase("list") && (event.getMember().hasPermission(Permission.ADMINISTRATOR) || event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
-                    whitelistTable = new WhitelistTable();
-                    List<WhitelistTable> whitelistTables = whitelistTable.fetchAll();
-
-                    StringBuilder builder = new StringBuilder();
-                    whitelistTables.forEach(user -> {
-                        builder.append(user.username).append("\r\n");
-                    });
-                    event.reply("**Whitelisted Players:**\n\n" + builder.toString());
-                }
             } else {
                 event.reply("Whitelisting is not enabled");
             }
         }
+
     }
 }

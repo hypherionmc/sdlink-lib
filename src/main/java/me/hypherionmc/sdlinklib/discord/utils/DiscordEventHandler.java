@@ -79,4 +79,8 @@ public class DiscordEventHandler extends ListenerAdapter {
     public void shutdown() {
         threadPool.shutdownNow();
     }
+
+    public ScheduledExecutorService getThreadPool() {
+        return threadPool;
+    }
 }
