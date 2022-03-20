@@ -78,8 +78,9 @@ public class BotEngine {
                     commandClient.addCommand(new PlayerListCommand(minecraftEventHandler));
                     commandClient.addCommand(new WhitelistCommand(whitelistTable, minecraftEventHandler, modConfig));
                     commandClient.addCommand(new ServerStatusCommand(modConfig, minecraftEventHandler));
-                    commandClient.addCommand(new StopServerCommand(minecraftEventHandler));
+                    //commandClient.addCommand(new StopServerCommand(minecraftEventHandler));
                     commandClient.addCommand(new LinkCommand(userTable, modConfig));
+                    commandClient.addCommand(new UnLinkCommand(userTable, modConfig));
                     commandClient.addCommand(new LinkedCommand(userTable));
                     commandClient.addCommand(new HelpCommand(this));
                     jda.addEventListener(commandClient, discordEventHandler);
@@ -166,7 +167,7 @@ public class BotEngine {
         }
 
         WebhookMessageClient webhookMessageClient = new WebhookMessageClient(modConfig.webhookConfig.webhookurl);
-        webhookMessageClient.setUsername(isChat ? username : "Minecraft Server");
+        webhookMessageClient.setUsername(isChat ? username : modConfig.webhookConfig.serverName);
         webhookMessageClient.setAvatarUrl(avatarUrl);
         webhookMessageClient.setContent(isChat ? message : "*" + message + "*");
         try {

@@ -69,7 +69,9 @@ shadowJar {
         relocate 'org.slf4j', 'shadow.slf4j'
         relocate 'javax.annotation', 'shadow.javax.annotation'
         relocate 'gnu.trove', 'shadow.gnu.trove'
+        relocate 'oshi', 'shadow.oshi'
         relocate 'com.github.oshi', 'shadow.github.oshi'
+        relocate 'com.sun.jna', 'shadow.sun.jna'
     }
     classifier ''
 }

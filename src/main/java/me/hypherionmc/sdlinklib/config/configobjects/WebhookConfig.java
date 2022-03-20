@@ -17,4 +17,8 @@ public class WebhookConfig {
     @SpecComment("A DIRECT link to an image to use as the avatar for server messages")
     public String serverAvatar = "";
 
+    @Path("serverName")
+    @SpecComment("The name to display for Server messages when using Webhooks")
+    public String serverName = "Minecraft Server";
+
 }
