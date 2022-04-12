@@ -27,7 +27,8 @@ dependencies {
     compile "pw.chew:jda-chewtils:${jdautils_ver}"
     compile("net.dv8tion:JDA:$jdaVersion") { exclude module: 'opus-java' }
     compile group: 'org.json', name: 'json', version: '20211205'
-    compile group: 'com.github.oshi', name: 'oshi-core', version: '5.8.3'
+    compile group: 'com.github.oshi', name: 'oshi-core', version: '6.1.5'
+    compile('club.minnced:discord-webhooks:0.7.5')
 
     compile "me.hypherionmc.night-config:toml:${nightconf_ver}"
     compile "me.hypherionmc:JQLite:1.0.4"
@@ -58,9 +59,11 @@ shadowJar {
         exclude(dependency('org.apache.logging.log4j:log4j-core:.*'))
         exclude(dependency('org.apache.logging.log4j:log4j-api:.*'))
         exclude(dependency('org.apache.commons:commons-lang3:.*'))
+        exclude(dependency('org.apache.commons:commons-lang3:.*'))
         exclude(dependency('com.google.code.gson:.*'))
         exclude(dependency('javax:.*'))
         exclude(dependency('org.jetbrains:.*'))
+        exclude(dependency('net.java.dev.jna:.*'))
         exclude 'META-INF/versions/9/**'
         exclude 'module-info.class'
 
@@ -71,7 +74,7 @@ shadowJar {
         relocate 'gnu.trove', 'shadow.gnu.trove'
         relocate 'oshi', 'shadow.oshi'
         relocate 'com.github.oshi', 'shadow.github.oshi'
-        relocate 'com.sun.jna', 'shadow.sun.jna'
+        //relocate 'com.sun.jna', 'shadow.sun.jna'
     }
     classifier ''
 }

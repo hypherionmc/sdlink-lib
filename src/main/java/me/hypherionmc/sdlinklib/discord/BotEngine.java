@@ -1,5 +1,8 @@
 package me.hypherionmc.sdlinklib.discord;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
+import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import me.hypherionmc.jqlite.DatabaseEngine;
@@ -32,6 +35,7 @@ public class BotEngine {
     private final ModConfig modConfig;
     private JDA jda;
     private CommandClient commandClient;
+    private WebhookClient webhookClient;
     private final MinecraftEventHandler minecraftEventHandler;
     private DiscordEventHandler discordEventHandler;
 
@@ -45,6 +49,19 @@ public class BotEngine {
 
         databaseEngine.registerTable(whitelistTable);
         databaseEngine.registerTable(userTable);
+
+        if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty()) {
+            ConfigEngine.logger.info("[SDLink] Webhooks will be enabled");
+            WebhookClientBuilder builder = new WebhookClientBuilder(modConfig.webhookConfig.webhookurl);
+            builder.setThreadFactory((job) -> {
+                Thread thread = new Thread(job);
+                thread.setName("Webhook Thread");
+                thread.setDaemon(true);
+                return thread;
+            });
+            builder.setWait(true);
+            webhookClient = builder.build();
+        }
     }
 
     public boolean isBotReady() {
@@ -85,10 +102,6 @@ public class BotEngine {
                     commandClient.addCommand(new HelpCommand(this));
                     jda.addEventListener(commandClient, discordEventHandler);
                     jda.setAutoReconnect(true);
-
-                    if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty()) {
-                        ConfigEngine.logger.info("[SDLink] Webhooks will be enabled");
-                    }
                 }
             } catch (Exception e) {
                 if (modConfig.general.debugging) {
@@ -125,6 +138,9 @@ public class BotEngine {
             client.dispatcher().executorService().shutdownNow();
             jda.shutdownNow();
         }
+        if (webhookClient != null) {
+            webhookClient.close();
+        }
         if (discordEventHandler != null) {
             // Dirty Workaround for JDA not shutting down properly
             discordEventHandler.getThreadPool().schedule(() -> {
@@ -136,7 +152,7 @@ public class BotEngine {
 
     public void sendToDiscord(String message, String username, String uuid, boolean isChat) {
         if (jda != null && jda.getStatus() == JDA.Status.CONNECTED) {
-            if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty()) {
+            if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty() && webhookClient != null) {
                 sendWebhookMessage(username, message, uuid, isChat);
             } else {
                 TextChannel channel;
@@ -166,17 +182,11 @@ public class BotEngine {
             avatarUrl = "https://crafatar.com/avatars/" + uuid;
         }
 
-        WebhookMessageClient webhookMessageClient = new WebhookMessageClient(modConfig.webhookConfig.webhookurl);
-        webhookMessageClient.setUsername(isChat ? username : modConfig.webhookConfig.serverName);
-        webhookMessageClient.setAvatarUrl(avatarUrl);
-        webhookMessageClient.setContent(isChat ? message : "*" + message + "*");
-        try {
-            webhookMessageClient.execute();
-        } catch (Exception e) {
-            if (modConfig.general.debugging) {
-                e.printStackTrace();
-            }
-        }
+        WebhookMessageBuilder builder = new WebhookMessageBuilder();
+        builder.setUsername(isChat && !username.equalsIgnoreCase("server") ? username : modConfig.webhookConfig.serverName);
+        builder.setAvatarUrl(avatarUrl);
+        builder.setContent(isChat ? message : "*" + message + "*");
+        webhookClient.send(builder.build());
     }
 
     public String getDiscordName(String mcName) {
