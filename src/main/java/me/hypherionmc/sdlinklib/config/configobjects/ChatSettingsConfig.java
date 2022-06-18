@@ -14,7 +14,7 @@ public class ChatSettingsConfig {
     public long logChannelID = 0;
 
     @Path("useEmbeds")
-    @SpecComment("Should embeds be used when webhooks are disabled")
+    @SpecComment("Should embeds be used instead of plain text messages")
     public boolean useEmbeds = true;
 
     @Path("ignoreBots")

@@ -6,7 +6,7 @@ plugins {
     id 'maven-publish'
 }
 
-group 'me.hypherionmc'
+group 'me.hypherionmc.sdlink'
 version project.version
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -64,18 +64,30 @@ shadowJar {
         exclude(dependency('javax:.*'))
         exclude(dependency('org.jetbrains:.*'))
         exclude(dependency('net.java.dev.jna:.*'))
-        //exclude(dependency('com.fasterxml.jackson.core:.*'))
         exclude 'META-INF/versions/9/**'
         exclude 'module-info.class'
 
-        relocate 'org.apache.commons.lang3', 'shadow.apache.commons.lang3'
-        relocate 'org.apache.commons.collections4', 'shadow.apache.commons.collections4'
-        relocate 'org.slf4j', 'shadow.slf4j'
-        relocate 'javax.annotation', 'shadow.javax.annotation'
-        relocate 'gnu.trove', 'shadow.gnu.trove'
-        relocate 'oshi', 'shadow.oshi'
-        relocate 'com.github.oshi', 'shadow.github.oshi'
-        relocate 'com.fasterxml.jackson', 'shadow.fasterxml.jackson'
+        relocate 'org.apache.commons.lang3', 'hypshadow.apache.commons.lang3'
+        relocate 'org.apache.commons.collections4', 'hypshadow.apache.commons.collections4'
+        relocate 'org.slf4j', 'hypshadow.slf4j'
+        relocate 'javax.annotation', 'hypshadow.javax.annotation'
+        relocate 'gnu.trove', 'hypshadow.gnu.trove'
+        relocate 'oshi', 'hypshadow.oshi'
+        relocate 'com.github.oshi', 'hypshadow.github.oshi'
+        relocate 'com.fasterxml.jackson', 'hypshadow.fasterxml.jackson'
+        relocate 'club.minnced', 'hypshadow.club.minnced'
+        relocate 'com.iwebpp', 'hypshadow.iwebpp'
+        relocate 'com.jagrosh', 'hypshadow.jagrosh'
+        relocate 'com.neovisionaries', 'hypshadow.neovisionaries'
+        relocate 'me.hypherionmc.nightconfig', 'hypshadow.hypherionmc.nightconfig'
+        relocate 'me.hypherionmc.jqlite', 'hypshadow.hypherionmc.jqlite'
+        relocate 'net.dv8tion', 'hypshadow.dv8tion'
+        relocate 'okhttp3', 'hypshadow.okhttp3'
+        relocate 'okio', 'hypshadow.okio'
+        relocate 'org.json', 'hypshadow.json'
+        //relocate 'org.sqlite', 'hypshadow.sqlite'
+        relocate 'pw.chew', 'hypshadow.chew'
+
         //relocate 'com.sun.jna', 'shadow.sun.jna'
     }
     classifier ''

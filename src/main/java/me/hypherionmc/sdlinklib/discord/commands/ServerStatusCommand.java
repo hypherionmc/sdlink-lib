@@ -3,7 +3,7 @@ package me.hypherionmc.sdlinklib.discord.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.config.ModConfig;
-import me.hypherionmc.sdlinklib.services.PlatformServices;
+import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -14,9 +14,11 @@ import oshi.hardware.HardwareAbstractionLayer;
 public class ServerStatusCommand extends Command {
 
     private final ModConfig config;
+    private final IMinecraftHelper minecraftHelper;
 
-    public ServerStatusCommand(ModConfig config) {
+    public ServerStatusCommand(IMinecraftHelper helper, ModConfig config) {
         this.config = config;
+        this.minecraftHelper = helper;
 
         this.name = "status";
         this.help = "View information about your server";
@@ -69,22 +71,22 @@ public class ServerStatusCommand extends Command {
 
         stringBuilder
                 .append("**Server Uptime:**\r\n```\r\n")
-                .append(SystemUtils.secondsToTimestamp(PlatformServices.mc.getServerUptime()))
+                .append(SystemUtils.secondsToTimestamp(minecraftHelper.getServerUptime()))
                 .append("```\r\n");
 
         stringBuilder
                 .append("**Server Version:**\r\n```\r\n")
-                .append(PlatformServices.mc.getServerVersion())
+                .append(minecraftHelper.getServerVersion())
                 .append("```\r\n");
 
         stringBuilder
                 .append("**Players Online:**\r\n```\r\n")
-                .append(PlatformServices.mc.getOnlinePlayerCount() + "/" + PlatformServices.mc.getMaxPlayerCount())
+                .append(minecraftHelper.getOnlinePlayerCount() + "/" + minecraftHelper.getMaxPlayerCount())
                 .append("```\r\n");
 
         stringBuilder
                 .append("**Whitelisting:**\r\n```\r\n")
-                .append(PlatformServices.mc.isWhitelistingEnabled() ? "Enabled" : "Disabled")
+                .append(minecraftHelper.isWhitelistingEnabled() ? "Enabled" : "Disabled")
                 .append("```\r\n");
 
         builder.setDescription(stringBuilder.toString());

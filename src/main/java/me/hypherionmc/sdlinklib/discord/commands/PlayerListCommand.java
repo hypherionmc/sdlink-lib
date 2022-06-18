@@ -2,23 +2,26 @@ package me.hypherionmc.sdlinklib.discord.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import me.hypherionmc.sdlinklib.services.PlatformServices;
+import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 
 import java.util.List;
 
 public class PlayerListCommand extends Command {
 
-    public PlayerListCommand() {
+    private final IMinecraftHelper minecraftHelper;
+
+    public PlayerListCommand(IMinecraftHelper helper) {
         this.name = "list";
         this.help = "List players on the server";
+        this.minecraftHelper = helper;
     }
 
     @Override
     protected void execute(CommandEvent event) {
-        List<String> players = PlatformServices.mc.getOnlinePlayerNames();
+        List<String> players = minecraftHelper.getOnlinePlayerNames();
 
         StringBuilder builder = new StringBuilder();
-        builder.append("Players Online (").append(PlatformServices.mc.getOnlinePlayerCount()).append("/").append(PlatformServices.mc.getMaxPlayerCount()).append("):\r\n\r\n");
+        builder.append("Players Online (").append(minecraftHelper.getOnlinePlayerCount()).append("/").append(minecraftHelper.getMaxPlayerCount()).append("):\r\n\r\n");
 
         for (String player : players) {
             builder.append(player).append("\r\n");

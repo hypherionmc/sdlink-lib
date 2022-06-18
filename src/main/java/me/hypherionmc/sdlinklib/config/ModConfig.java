@@ -2,10 +2,7 @@ package me.hypherionmc.sdlinklib.config;
 
 import me.hypherionmc.nightconfig.core.conversion.Path;
 import me.hypherionmc.nightconfig.core.conversion.SpecComment;
-import me.hypherionmc.sdlinklib.config.configobjects.ChatSettingsConfig;
-import me.hypherionmc.sdlinklib.config.configobjects.GeneralConfig;
-import me.hypherionmc.sdlinklib.config.configobjects.MessageConfig;
-import me.hypherionmc.sdlinklib.config.configobjects.WebhookConfig;
+import me.hypherionmc.sdlinklib.config.configobjects.*;
 
 public class ModConfig {
 
@@ -24,5 +21,9 @@ public class ModConfig {
     @Path("messages")
     @SpecComment("Change the contents of certain event messages")
     public MessageConfig messageConfig = new MessageConfig();
+
+    @Path("messageDestinations")
+    @SpecComment("Change in which channel messages appear")
+    public MessageChannelsConfig messageDestinations = new MessageChannelsConfig();
 
 }

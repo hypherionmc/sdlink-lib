@@ -4,7 +4,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
-import me.hypherionmc.sdlinklib.services.PlatformServices;
+import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.PlayerUtils;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -19,8 +19,11 @@ public class WhitelistCommand extends Command {
     private WhitelistTable whitelistTable;
     private ModConfig modConfig;
 
-    public WhitelistCommand(WhitelistTable whitelistTable, ModConfig modConfig) {
+    private IMinecraftHelper minecraftHelper;
+
+    public WhitelistCommand(IMinecraftHelper helper, WhitelistTable whitelistTable, ModConfig modConfig) {
         this.whitelistTable = whitelistTable;
+        this.minecraftHelper = helper;
         this.modConfig = modConfig;
 
         this.name = "whitelist";
@@ -44,7 +47,7 @@ public class WhitelistCommand extends Command {
             event.reply(embedBuilder.build());
         } else {
             if (modConfig.general.whitelisting) {
-                if (PlatformServices.mc.isWhitelistingEnabled()) {
+                if (minecraftHelper.isWhitelistingEnabled()) {
                     if (modConfig.general.adminWhitelistOnly && !event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
                         event.reply("Sorry, only Admins/Members with Kick Permissions can whitelist players");
                     } else {
@@ -56,7 +59,7 @@ public class WhitelistCommand extends Command {
                             if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
                                 event.reply("Failed to fetch info for player " + args[1]);
                             } else {
-                                if (PlatformServices.mc.isPlayerWhitelisted(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
+                                if (minecraftHelper.isPlayerWhitelisted(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
                                     event.reply("Player " + player.getLeft() + " is already whitelisted on this server");
                                 } else {
                                     whitelistTable = new WhitelistTable();
@@ -67,7 +70,7 @@ public class WhitelistCommand extends Command {
                                         whitelistTable.username = player.getLeft();
                                         whitelistTable.UUID = player.getRight();
                                         whitelistTable.discordID = event.getAuthor().getIdLong();
-                                        if (PlatformServices.mc.whitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight())) && whitelistTable.insert()) {
+                                        if (minecraftHelper.whitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight())) && whitelistTable.insert()) {
                                             event.reply("Player " + player.getLeft() + " is now whitelisted!");
                                         } else {
                                             event.reply("Player " + player.getLeft() + " could not be whitelisted. Either they are already whitelisted, or an error occurred");
@@ -88,8 +91,10 @@ public class WhitelistCommand extends Command {
 
                                 if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
                                     event.reply("Failed to fetch info for player " + args[1]);
+                                } else if (!minecraftHelper.isPlayerWhitelisted(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
+                                    event.reply("Player " + player.getLeft() + " is not whitelisted on this server");
                                 } else {
-                                    if (PlatformServices.mc.unWhitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
+                                    if (minecraftHelper.unWhitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
                                         whitelistTable.delete();
                                         event.reply("Player " + player + " has been removed from the whitelist");
                                     } else {
@@ -100,7 +105,7 @@ public class WhitelistCommand extends Command {
                         }
 
                         if (args[0].equalsIgnoreCase("list") && (event.getMember().hasPermission(Permission.ADMINISTRATOR) || event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
-                            List<String> string = PlatformServices.mc.getWhitelistedPlayers();
+                            List<String> string = minecraftHelper.getWhitelistedPlayers();
                             event.reply("**Whitelisted Players:**\n\n" + ArrayUtils.toString(string));
                         }
                     }

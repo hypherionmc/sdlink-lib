@@ -18,7 +18,7 @@ public class WebhookConfig {
     public String webhookurlLogs = "";
 
     @Path("serverAvatar")
-    @SpecComment("A DIRECT link to an image to use as the avatar for server messages")
+    @SpecComment("A DIRECT link to an image to use as the avatar for server messages. Also used for embeds")
     public String serverAvatar = "";
 
     @Path("serverName")

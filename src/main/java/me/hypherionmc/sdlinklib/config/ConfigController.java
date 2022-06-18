@@ -13,11 +13,15 @@ public class ConfigController {
 
     private final File configPath;
     public static final Logger logger = LogManager.getLogger("Simple Discord Link");
-    public static int configVer = 6;
+    public static int configVer = 7;
 
     private ModConfig modConfig;
 
     public ConfigController(String configPath) {
+        File path = new File(configPath);
+        if (!path.exists()) {
+            path.mkdirs();
+        }
         this.configPath = new File(configPath + "/simple-discord-bot.toml");
         initConfig();
     }
