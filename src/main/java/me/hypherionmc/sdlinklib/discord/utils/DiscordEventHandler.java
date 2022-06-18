@@ -73,7 +73,7 @@ public class DiscordEventHandler extends ListenerAdapter {
                     ConfigEngine.logger.error(e.getMessage());
                 }
             }
-        }, 0, 11, TimeUnit.MINUTES);
+        }, 11, 11, TimeUnit.MINUTES);
     }
 
     public void shutdown() {

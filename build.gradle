@@ -64,6 +64,7 @@ shadowJar {
         exclude(dependency('javax:.*'))
         exclude(dependency('org.jetbrains:.*'))
         exclude(dependency('net.java.dev.jna:.*'))
+        //exclude(dependency('com.fasterxml.jackson.core:.*'))
         exclude 'META-INF/versions/9/**'
         exclude 'module-info.class'
 
@@ -74,6 +75,7 @@ shadowJar {
         relocate 'gnu.trove', 'shadow.gnu.trove'
         relocate 'oshi', 'shadow.oshi'
         relocate 'com.github.oshi', 'shadow.github.oshi'
+        relocate 'com.fasterxml.jackson', 'shadow.fasterxml.jackson'
         //relocate 'com.sun.jna', 'shadow.sun.jna'
     }
     classifier ''
