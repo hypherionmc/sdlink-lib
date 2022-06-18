@@ -4,8 +4,9 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
-import me.hypherionmc.sdlinklib.discord.utils.MinecraftEventHandler;
+import me.hypherionmc.sdlinklib.services.PlatformServices;
 import me.hypherionmc.sdlinklib.utils.PlayerUtils;
+import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import org.apache.commons.lang3.ArrayUtils;
@@ -16,12 +17,10 @@ import java.util.List;
 public class WhitelistCommand extends Command {
 
     private WhitelistTable whitelistTable;
-    private MinecraftEventHandler eventHandler;
     private ModConfig modConfig;
 
-    public WhitelistCommand(WhitelistTable whitelistTable, MinecraftEventHandler eventHandler, ModConfig modConfig) {
+    public WhitelistCommand(WhitelistTable whitelistTable, ModConfig modConfig) {
         this.whitelistTable = whitelistTable;
-        this.eventHandler = eventHandler;
         this.modConfig = modConfig;
 
         this.name = "whitelist";
@@ -32,7 +31,6 @@ public class WhitelistCommand extends Command {
     protected void execute(CommandEvent event) {
 
         if (event.getArgs().isEmpty()) {
-
             EmbedBuilder embedBuilder = new EmbedBuilder();
             embedBuilder.setTitle("Whitelist Command Help");
             embedBuilder.setDescription(
@@ -44,13 +42,10 @@ public class WhitelistCommand extends Command {
             );
 
             event.reply(embedBuilder.build());
-
         } else {
             if (modConfig.general.whitelisting) {
-
-                if (eventHandler.whiteListingEnabled()) {
-
-                    if (modConfig.general.adminWhitelistOnly && (!event.getMember().hasPermission(Permission.ADMINISTRATOR) || !event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
+                if (PlatformServices.mc.isWhitelistingEnabled()) {
+                    if (modConfig.general.adminWhitelistOnly && !event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
                         event.reply("Sorry, only Admins/Members with Kick Permissions can whitelist players");
                     } else {
                         String[] args = event.getArgs().split(" ");
@@ -61,24 +56,23 @@ public class WhitelistCommand extends Command {
                             if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
                                 event.reply("Failed to fetch info for player " + args[1]);
                             } else {
-                                String response = eventHandler.whitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()));
-
-                                if (response.toLowerCase().contains("now whitelisted")) {
-                                    whitelistTable = new WhitelistTable();
-                                    whitelistTable.username = player.getLeft();
-                                    whitelistTable.UUID = player.getRight();
-                                    whitelistTable.discordID = event.getAuthor().getIdLong();
-
-                                    List<WhitelistTable> tables = whitelistTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
-                                    if (tables.isEmpty()) {
-                                        whitelistTable.insert();
-                                    } else {
-                                        whitelistTable.update();
-                                    }
-
-                                    event.reply(response);
+                                if (PlatformServices.mc.isPlayerWhitelisted(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
+                                    event.reply("Player " + player.getLeft() + " is already whitelisted on this server");
                                 } else {
-                                    event.reply(response);
+                                    whitelistTable = new WhitelistTable();
+                                    List<WhitelistTable> tables = whitelistTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
+                                    if (!tables.isEmpty() && !SystemUtils.doesHavePermission(event.getMember())) {
+                                        event.reply("You have already whitelisted a player on this server! Only one whitelist per player is allowed. Please ask an admin for assistance");
+                                    } else {
+                                        whitelistTable.username = player.getLeft();
+                                        whitelistTable.UUID = player.getRight();
+                                        whitelistTable.discordID = event.getAuthor().getIdLong();
+                                        if (PlatformServices.mc.whitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight())) && whitelistTable.insert()) {
+                                            event.reply("Player " + player.getLeft() + " is now whitelisted!");
+                                        } else {
+                                            event.reply("Player " + player.getLeft() + " could not be whitelisted. Either they are already whitelisted, or an error occurred");
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -87,7 +81,7 @@ public class WhitelistCommand extends Command {
                             whitelistTable = new WhitelistTable();
                             whitelistTable.fetch("discordID = '" + event.getAuthor().getIdLong() + "'");
 
-                            if ((whitelistTable.username == null || !whitelistTable.username.equalsIgnoreCase(args[1])) && (!event.getMember().hasPermission(Permission.ADMINISTRATOR) || !event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
+                            if ((whitelistTable.username == null || !whitelistTable.username.equalsIgnoreCase(args[1])) && !SystemUtils.doesHavePermission(event.getMember())) {
                                 event.reply("Sorry, you cannot un-whitelist this player");
                             } else {
                                 Pair<String, String> player = PlayerUtils.fetchUUID(args[1]);
@@ -95,32 +89,27 @@ public class WhitelistCommand extends Command {
                                 if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
                                     event.reply("Failed to fetch info for player " + args[1]);
                                 } else {
-                                    String response = eventHandler.unWhitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()));
-                                    if (response.toLowerCase().contains("has been removed from the whitelist")) {
-
+                                    if (PlatformServices.mc.unWhitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
                                         whitelistTable.delete();
-                                        event.reply(response);
+                                        event.reply("Player " + player + " has been removed from the whitelist");
                                     } else {
-                                        event.reply(response);
+                                        event.reply("Player " + player.getLeft() + " could not be un-whitelisted. Either they are not whitelisted, or an error occurred");
                                     }
                                 }
                             }
                         }
 
                         if (args[0].equalsIgnoreCase("list") && (event.getMember().hasPermission(Permission.ADMINISTRATOR) || event.getMember().hasPermission(Permission.KICK_MEMBERS))) {
-                            List<String> string = eventHandler.getWhitelistedPlayers();
+                            List<String> string = PlatformServices.mc.getWhitelistedPlayers();
                             event.reply("**Whitelisted Players:**\n\n" + ArrayUtils.toString(string));
                         }
                     }
-
                 } else {
                     event.reply("Whitelisting is not enabled on your server");
                 }
-
             } else {
                 event.reply("Whitelisting is not enabled");
             }
         }
-
     }
 }

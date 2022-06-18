@@ -25,14 +25,12 @@ public class PlayerUtils {
             if (!obj.getString("name").isEmpty()) {
                 returnname = obj.getString("name");
             }
-
             if (!obj.getString("id").isEmpty()) {
                 uuid = obj.getString("id");
             }
 
             read.close();
             return Pair.of(returnname, uuid);
-
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }

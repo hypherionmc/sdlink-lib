@@ -3,7 +3,7 @@ package me.hypherionmc.sdlinklib.discord.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.config.ModConfig;
-import me.hypherionmc.sdlinklib.discord.utils.MinecraftEventHandler;
+import me.hypherionmc.sdlinklib.services.PlatformServices;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -14,11 +14,9 @@ import oshi.hardware.HardwareAbstractionLayer;
 public class ServerStatusCommand extends Command {
 
     private final ModConfig config;
-    private final MinecraftEventHandler eventHandler;
 
-    public ServerStatusCommand(ModConfig config, MinecraftEventHandler eventHandler) {
+    public ServerStatusCommand(ModConfig config) {
         this.config = config;
-        this.eventHandler = eventHandler;
 
         this.name = "status";
         this.help = "View information about your server";
@@ -71,22 +69,22 @@ public class ServerStatusCommand extends Command {
 
         stringBuilder
                 .append("**Server Uptime:**\r\n```\r\n")
-                .append(SystemUtils.secondsToTimestamp(eventHandler.getServerUptime()))
+                .append(SystemUtils.secondsToTimestamp(PlatformServices.mc.getServerUptime()))
                 .append("```\r\n");
 
         stringBuilder
                 .append("**Server Version:**\r\n```\r\n")
-                .append(eventHandler.getServerVersion())
+                .append(PlatformServices.mc.getServerVersion())
                 .append("```\r\n");
 
         stringBuilder
                 .append("**Players Online:**\r\n```\r\n")
-                .append(eventHandler.getPlayerCount() + "/" + eventHandler.getMaxPlayerCount())
+                .append(PlatformServices.mc.getOnlinePlayerCount() + "/" + PlatformServices.mc.getMaxPlayerCount())
                 .append("```\r\n");
 
         stringBuilder
                 .append("**Whitelisting:**\r\n```\r\n")
-                .append(eventHandler.whiteListingEnabled() ? "Enabled" : "Disabled")
+                .append(PlatformServices.mc.isWhitelistingEnabled() ? "Enabled" : "Disabled")
                 .append("```\r\n");
 
         builder.setDescription(stringBuilder.toString());

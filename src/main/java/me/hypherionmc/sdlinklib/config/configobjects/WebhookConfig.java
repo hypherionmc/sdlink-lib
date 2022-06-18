@@ -10,8 +10,12 @@ public class WebhookConfig {
     public boolean enabled = false;
 
     @Path("webhookurl")
-    @SpecComment("The URL of the channel webhook")
+    @SpecComment("The URL of the channel webhook to use for Chat Messages")
     public String webhookurl = "";
+
+    @Path("webhookurlLogs")
+    @SpecComment("The URL of the channel webhook to use for Server Messages Messages")
+    public String webhookurlLogs = "";
 
     @Path("serverAvatar")
     @SpecComment("A DIRECT link to an image to use as the avatar for server messages")

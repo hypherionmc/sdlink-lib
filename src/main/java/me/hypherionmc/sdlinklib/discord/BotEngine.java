@@ -6,13 +6,13 @@ import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import me.hypherionmc.jqlite.DatabaseEngine;
-import me.hypherionmc.sdlinklib.config.ConfigEngine;
+import me.hypherionmc.sdlinklib.config.ConfigController;
 import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
 import me.hypherionmc.sdlinklib.discord.commands.*;
-import me.hypherionmc.sdlinklib.discord.utils.DiscordEventHandler;
-import me.hypherionmc.sdlinklib.discord.utils.MinecraftEventHandler;
+import me.hypherionmc.sdlinklib.services.PlatformServices;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class BotEngine {
@@ -35,32 +36,45 @@ public class BotEngine {
     private final ModConfig modConfig;
     private JDA jda;
     private CommandClient commandClient;
-    private WebhookClient webhookClient;
-    private final MinecraftEventHandler minecraftEventHandler;
+    private WebhookClient webhookClient, webhookClient2;
     private DiscordEventHandler discordEventHandler;
-
     private final DatabaseEngine databaseEngine = new DatabaseEngine("sdlink-whitelist");
     private WhitelistTable whitelistTable = new WhitelistTable();
     private UserTable userTable = new UserTable();
 
-    public BotEngine(ModConfig modConfig, MinecraftEventHandler minecraftEventHandler) {
+    public static final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+
+
+    public BotEngine(ModConfig modConfig) {
         this.modConfig = modConfig;
-        this.minecraftEventHandler = minecraftEventHandler;
+        databaseEngine.registerTable(whitelistTable, userTable);
 
-        databaseEngine.registerTable(whitelistTable);
-        databaseEngine.registerTable(userTable);
+        if (modConfig.webhookConfig.enabled) {
+            if (!modConfig.webhookConfig.webhookurl.isEmpty()) {
+                ConfigController.logger.info("[SDLink] Chat Channel Webhooks will be enabled");
+                WebhookClientBuilder builder = new WebhookClientBuilder(modConfig.webhookConfig.webhookurl);
+                builder.setThreadFactory((job) -> {
+                    Thread thread = new Thread(job);
+                    thread.setName("Webhook Thread");
+                    thread.setDaemon(true);
+                    return thread;
+                });
+                builder.setWait(true);
+                webhookClient = builder.build();
+            }
 
-        if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty()) {
-            ConfigEngine.logger.info("[SDLink] Webhooks will be enabled");
-            WebhookClientBuilder builder = new WebhookClientBuilder(modConfig.webhookConfig.webhookurl);
-            builder.setThreadFactory((job) -> {
-                Thread thread = new Thread(job);
-                thread.setName("Webhook Thread");
-                thread.setDaemon(true);
-                return thread;
-            });
-            builder.setWait(true);
-            webhookClient = builder.build();
+            if (!modConfig.webhookConfig.webhookurlLogs.isEmpty()) {
+                ConfigController.logger.info("[SDLink] Events Channel Webhooks will be enabled");
+                WebhookClientBuilder builder = new WebhookClientBuilder(modConfig.webhookConfig.webhookurlLogs);
+                builder.setThreadFactory((job) -> {
+                    Thread thread = new Thread(job);
+                    thread.setName("Webhook Thread 2");
+                    thread.setDaemon(true);
+                    return thread;
+                });
+                builder.setWait(true);
+                webhookClient2 = builder.build();
+            }
         }
     }
 
@@ -69,14 +83,17 @@ public class BotEngine {
     }
 
     public void initBot() {
-
         if (modConfig == null || modConfig.general.botToken.isEmpty()) {
-            ConfigEngine.logger.error("[SDLink] Could not load Config or your BotToken is empty. Bot will not start");
+            ConfigController.logger.error("[SDLink] Could not load Config or your BotToken is empty. Bot will not start");
         } else {
 
             try {
                 if (modConfig.general.enabled) {
-                    jda = JDABuilder.createLight(modConfig.general.botToken, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS)
+                    jda = JDABuilder.createLight(
+                                modConfig.general.botToken,
+                                GatewayIntent.GUILD_MESSAGES,
+                                GatewayIntent.GUILD_MEMBERS
+                            )
                             .setMemberCachePolicy(MemberCachePolicy.NONE)
                             .setChunkingFilter(ChunkingFilter.ALL)
                             .setBulkDeleteSplittingEnabled(false)
@@ -89,13 +106,12 @@ public class BotEngine {
                     clientBuilder.setHelpWord("help");
                     clientBuilder.useHelpBuilder(false);
 
-                    discordEventHandler = new DiscordEventHandler(minecraftEventHandler, modConfig);
+                    discordEventHandler = new DiscordEventHandler(modConfig);
 
                     commandClient = clientBuilder.build();
-                    commandClient.addCommand(new PlayerListCommand(minecraftEventHandler));
-                    commandClient.addCommand(new WhitelistCommand(whitelistTable, minecraftEventHandler, modConfig));
-                    commandClient.addCommand(new ServerStatusCommand(modConfig, minecraftEventHandler));
-                    //commandClient.addCommand(new StopServerCommand(minecraftEventHandler));
+                    commandClient.addCommand(new PlayerListCommand());
+                    commandClient.addCommand(new WhitelistCommand(whitelistTable, modConfig));
+                    commandClient.addCommand(new ServerStatusCommand(modConfig));
                     commandClient.addCommand(new LinkCommand(userTable, modConfig));
                     commandClient.addCommand(new UnLinkCommand(userTable, modConfig));
                     commandClient.addCommand(new LinkedCommand(userTable));
@@ -106,7 +122,7 @@ public class BotEngine {
             } catch (Exception e) {
                 if (modConfig.general.debugging) {
                     e.printStackTrace();
-                    ConfigEngine.logger.error("Failed to connect to discord. Error: " + e.getMessage());
+                    ConfigController.logger.error("Failed to connect to discord. Error: " + e.getMessage());
                 }
             }
         }
@@ -124,8 +140,8 @@ public class BotEngine {
 
     public void initWhitelisting() {
         if (jda != null && modConfig.general.whitelisting) {
-            if (!minecraftEventHandler.whiteListingEnabled()) {
-                ConfigEngine.logger.warn("Serverside Whitelisting is disabled. Whitelist command will not work");
+            if (!PlatformServices.mc.isWhitelistingEnabled()) {
+                ConfigController.logger.warn("Serverside Whitelisting is disabled. Whitelist command will not work");
             }
         }
     }
@@ -141,34 +157,32 @@ public class BotEngine {
         if (webhookClient != null) {
             webhookClient.close();
         }
-        if (discordEventHandler != null) {
-            // Dirty Workaround for JDA not shutting down properly
-            discordEventHandler.getThreadPool().schedule(() -> {
-                discordEventHandler.shutdown();
-                System.exit(1);
-            }, 10, TimeUnit.SECONDS);
+        if (webhookClient2 != null) {
+            webhookClient2.close();
         }
+        if (discordEventHandler != null) {
+            discordEventHandler.shutdown();
+        }
+
+        // Dirty Workaround for JDA not shutting down properly
+        threadPool.schedule(() -> {
+            System.exit(1);
+        }, 10, TimeUnit.SECONDS);
     }
 
     public void sendToDiscord(String message, String username, String uuid, boolean isChat) {
-        if (jda != null && jda.getStatus() == JDA.Status.CONNECTED) {
-            if (modConfig.webhookConfig.enabled && !modConfig.webhookConfig.webhookurl.isEmpty() && webhookClient != null) {
-                sendWebhookMessage(username, message, uuid, isChat);
-            } else {
-                TextChannel channel;
-
-                if (isChat) {
-                    channel = jda.getTextChannelById(modConfig.chatConfig.channelID);
+        if (isBotReady()) {
+            if (isChat) {
+                if (modConfig.webhookConfig.enabled && webhookClient != null) {
+                    sendWebhookMessage(username, message, uuid, true);
                 } else {
-                    channel = jda.getTextChannelById(modConfig.chatConfig.logChannelID != 0 ? modConfig.chatConfig.logChannelID : modConfig.chatConfig.channelID);
+                    sendEmbedMessage(message, username, uuid, true);
                 }
-
-                if (channel != null) {
-                    channel.sendMessage(isChat ? "**" + username + "**: " + message : "*" + message + "*").complete();
+            } else {
+                if (modConfig.webhookConfig.enabled && webhookClient2 != null) {
+                    sendWebhookMessage(username, message, uuid, false);
                 } else {
-                    if (modConfig.general.debugging) {
-                        ConfigEngine.logger.error("Could not find channel with ID " + modConfig.chatConfig.channelID);
-                    }
+                    sendEmbedMessage(message, username, uuid, false);
                 }
             }
         }
@@ -186,7 +200,34 @@ public class BotEngine {
         builder.setUsername(isChat && !username.equalsIgnoreCase("server") ? username : modConfig.webhookConfig.serverName);
         builder.setAvatarUrl(avatarUrl);
         builder.setContent(isChat ? message : "*" + message + "*");
-        webhookClient.send(builder.build());
+
+        if (isChat) {
+            webhookClient.send(builder.build());
+        } else {
+            webhookClient2.send(builder.build());
+        }
+    }
+
+    private void sendEmbedMessage(String username, String message, String uuid, boolean isChat) {
+        String avatarUrl = modConfig.webhookConfig.serverAvatar;
+        message = message.replace("<@", "");
+
+        if (!uuid.isEmpty() && !username.equalsIgnoreCase("server")) {
+            avatarUrl = "https://crafatar.com/avatars/" + uuid;
+        }
+
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setAuthor(isChat && !username.equalsIgnoreCase("server") ? username : modConfig.webhookConfig.serverName, null, avatarUrl);
+        builder.setDescription(isChat ? message : "*" + message + "*");
+
+        TextChannel channel = jda.getTextChannelById(isChat ? modConfig.chatConfig.channelID : (modConfig.chatConfig.logChannelID != 0 ? modConfig.chatConfig.logChannelID : modConfig.chatConfig.channelID));
+        if (channel != null) {
+            if (modConfig.chatConfig.useEmbeds) {
+                channel.sendMessageEmbeds(builder.build()).queue();
+            } else {
+                channel.sendMessage(isChat ? "**" + username + "**: " + message : "*" + message + "*").queue();
+            }
+        }
     }
 
     public String getDiscordName(String mcName) {

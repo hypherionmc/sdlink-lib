@@ -2,7 +2,7 @@ package me.hypherionmc.sdlinklib.config.configobjects;
 
 import me.hypherionmc.nightconfig.core.conversion.Path;
 import me.hypherionmc.nightconfig.core.conversion.SpecComment;
-import me.hypherionmc.sdlinklib.config.ConfigEngine;
+import me.hypherionmc.sdlinklib.config.ConfigController;
 
 public class GeneralConfig {
 
@@ -43,11 +43,11 @@ public class GeneralConfig {
     public String channelTopic = "Playing Minecraft with %players%/%maxplayers% people | Uptime: %uptime%";
 
     @Path("inviteLink")
-    @SpecComment("Discord Invite Link")
+    @SpecComment("Discord Invite Link used by the in-game invite command")
     public String inviteLink = "";
 
     @Path("configVersion")
     @SpecComment("Internal version control. DO NOT TOUCH!")
-    public int configVersion = ConfigEngine.configVer;
+    public int configVersion = ConfigController.configVer;
 
 }

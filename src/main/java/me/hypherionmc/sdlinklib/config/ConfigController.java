@@ -9,21 +9,22 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
-public class ConfigEngine {
+public class ConfigController {
 
     private final File configPath;
     public static final Logger logger = LogManager.getLogger("Simple Discord Link");
-    public static int configVer = 5;
+    public static int configVer = 6;
 
     private ModConfig modConfig;
 
-    public ConfigEngine(String configPath) {
+    public ConfigController(String configPath) {
         this.configPath = new File(configPath + "/simple-discord-bot.toml");
         initConfig();
     }
 
     private void initConfig() {
-        if (!configPath.exists()) {
+        Config.setInsertionOrderPreserved(true);
+        if (!configPath.exists() || configPath.length() < 10) {
             ModConfig modConfig = new ModConfig();
             saveConfig(modConfig);
         } else {
@@ -33,8 +34,6 @@ public class ConfigEngine {
     }
 
     private void configUpgrade() {
-        Config.setInsertionOrderPreserved(true);
-
         CommentedFileConfig oldConfig = CommentedFileConfig.builder(configPath).build();
         CommentedFileConfig newConfig = CommentedFileConfig.builder(configPath).build();
 
@@ -58,7 +57,7 @@ public class ConfigEngine {
                 }
             });
 
-            boolean ignored = configPath.renameTo(new File(configPath.getName().replace(".toml", ".bak")));
+            configPath.renameTo(new File(configPath.getAbsolutePath().replace(".toml", ".bak")));
             newConfig.set("general.configVersion", configVer);
             newConfig.save();
             newConfig.close();

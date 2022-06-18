@@ -30,7 +30,7 @@ public class MessageConfig {
     public String playerLeft = "%player% has left the server!";
 
     @Path("inviteMessage")
-    @SpecComment("The message to show when someone uses ~discord command. You can use %inviteurl%")
+    @SpecComment("The message to show when someone uses /discord command. You can use %inviteurl%")
     public String inviteMessage = "Hey, check out our discord server here -> %inviteurl%";
 
 }

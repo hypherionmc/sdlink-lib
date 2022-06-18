@@ -1,5 +1,8 @@
 package me.hypherionmc.sdlinklib.utils;
 
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Arrays;
@@ -70,5 +73,9 @@ public class SystemUtils {
         for (long v : values)
             sum += v;
         return sum / values.length;
+    }
+
+    public static boolean doesHavePermission(Member member) {
+        return member.hasPermission(Permission.ADMINISTRATOR) || member.hasPermission(Permission.KICK_MEMBERS);
     }
 }

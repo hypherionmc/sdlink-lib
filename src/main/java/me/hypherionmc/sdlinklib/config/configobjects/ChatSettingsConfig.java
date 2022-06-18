@@ -6,12 +6,16 @@ import me.hypherionmc.nightconfig.core.conversion.SpecComment;
 public class ChatSettingsConfig {
 
     @Path("channelID")
-    @SpecComment("The ID of the channel to post in. This will be ignored if webhooks are enabled")
+    @SpecComment("The ID of the channel to post in and relay messages from. This is still needed, even in webhook mode")
     public long channelID = 0;
 
     @Path("logChannelID")
     @SpecComment("If this ID is set, event messages will be posted in this channel instead of the chat channel")
     public long logChannelID = 0;
+
+    @Path("useEmbeds")
+    @SpecComment("Should embeds be used when webhooks are disabled")
+    public boolean useEmbeds = true;
 
     @Path("ignoreBots")
     @SpecComment("Should messages from bots be relayed")
