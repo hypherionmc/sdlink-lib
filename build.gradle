@@ -31,7 +31,7 @@ dependencies {
     compile('club.minnced:discord-webhooks:0.7.5')
 
     compile "me.hypherionmc.night-config:toml:${nightconf_ver}"
-    compile "me.hypherionmc:JQLite:1.0.4"
+    compile "me.hypherionmc:JQLite:1.0.8"
 }
 
 jar {
