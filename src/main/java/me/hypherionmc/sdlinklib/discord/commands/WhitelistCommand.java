@@ -96,7 +96,7 @@ public class WhitelistCommand extends Command {
                                 } else {
                                     if (minecraftHelper.unWhitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
                                         whitelistTable.delete();
-                                        event.reply("Player " + player + " has been removed from the whitelist");
+                                        event.reply("Player " + player.getLeft() + " has been removed from the whitelist");
                                     } else {
                                         event.reply("Player " + player.getLeft() + " could not be un-whitelisted. Either they are not whitelisted, or an error occurred");
                                     }

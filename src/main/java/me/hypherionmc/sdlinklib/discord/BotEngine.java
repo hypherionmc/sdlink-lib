@@ -50,7 +50,8 @@ public class BotEngine {
     public BotEngine(IMinecraftHelper minecraftHelper, ModConfig modConfig) {
         this.modConfig = modConfig;
         this.minecraftHelper = minecraftHelper;
-        databaseEngine.registerTable(whitelistTable, userTable);
+        databaseEngine.registerTable(whitelistTable);
+        databaseEngine.registerTable(userTable);
 
         if (modConfig.webhookConfig.enabled) {
             if (!modConfig.webhookConfig.webhookurl.isEmpty()) {
@@ -143,7 +144,7 @@ public class BotEngine {
 
     public void initWhitelisting() {
         if (jda != null && modConfig.general.whitelisting) {
-            if (minecraftHelper.isWhitelistingEnabled()) {
+            if (!minecraftHelper.isWhitelistingEnabled()) {
                 ConfigController.logger.warn("Serverside Whitelisting is disabled. Whitelist command will not work");
             }
         }

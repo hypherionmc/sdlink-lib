@@ -40,7 +40,7 @@ dependencies {
         exclude module: 'opus-java'
         exclude(group: 'org.apache.commons')
     }
-    compile("me.hypherionmc:JQLite:1.0.8") {
+    compile("me.hypherionmc:JQLite:1.0.4") {
         exclude(group: 'org.apache.commons')
     }
 }
