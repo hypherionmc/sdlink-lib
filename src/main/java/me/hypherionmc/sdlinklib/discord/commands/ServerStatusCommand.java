@@ -8,8 +8,8 @@ import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
 import oshi.hardware.HardwareAbstractionLayer;
-import oshi.hardware.Processor;
 
 public class ServerStatusCommand extends Command {
 
@@ -31,7 +31,7 @@ public class ServerStatusCommand extends Command {
     protected void execute(CommandEvent event) {
         SystemInfo systemInfo = new SystemInfo();
         HardwareAbstractionLayer hal = systemInfo.getHardware();
-        Processor[] cpu = hal.getProcessors();
+        CentralProcessor cpu = hal.getProcessor();
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Server Information / Status");
@@ -41,7 +41,7 @@ public class ServerStatusCommand extends Command {
 
         stringBuilder
                 .append("**CPU:**\r\n```\r\n")
-                .append(cpu[0].toString())
+                .append(cpu.toString())
                 .append("```")
                 .append("\r\n");
 
@@ -58,16 +58,16 @@ public class ServerStatusCommand extends Command {
                 .append("**OS:**\r\n```\r\n")
                 .append(systemInfo.getOperatingSystem().toString())
                 .append(" (")
-                .append(cpu[0].isCpu64bit() ? "64-Bit" : "32-Bit")
+                .append(systemInfo.getOperatingSystem().getBitness())
                 .append(" bit)\r\n")
                 .append("Version: ")
-                .append(systemInfo.getOperatingSystem().getVersion().toString())
+                .append(systemInfo.getOperatingSystem().getVersionInfo().getVersion())
                 .append("```\r\n");
 
-        /*stringBuilder
+        stringBuilder
                 .append("**System Uptime:**\r\n```\r\n")
                 .append(SystemUtils.secondsToTimestamp(systemInfo.getOperatingSystem().getSystemUptime()))
-                .append("```\r\n");*/
+                .append("```\r\n");
 
         stringBuilder.append("**__Minecraft Information__**\r\n\r\n");
 
