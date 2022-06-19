@@ -16,6 +16,7 @@ repositories {
     maven { url "https://maven.firstdarkdev.xyz/releases" }
     maven { url "https://m2.dv8tion.net/releases" }
     maven { url "https://m2.chew.pro/releases" }
+    maven { url "https://nexus.velocitypowered.com/repository/maven-public/" }
 }
 
 dependencies {
@@ -23,15 +24,21 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j_ver
     compile group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
     compile('org.apache.commons:commons-collections4:4.4')
-
-    compile "pw.chew:jda-chewtils:${jdautils_ver}"
-    compile("net.dv8tion:JDA:$jdaVersion") { exclude module: 'opus-java' }
     compile group: 'org.json', name: 'json', version: '20211205'
-    compile group: 'com.github.oshi', name: 'oshi-core', version: '6.1.5'
+    compile group: 'oshi-project', name: 'oshi-core', version: '1.1'
     compile('club.minnced:discord-webhooks:0.7.5')
-
     compile "me.hypherionmc.night-config:toml:${nightconf_ver}"
-    compile "me.hypherionmc:JQLite:1.0.8"
+
+    compile ("pw.chew:jda-chewtils:${jdautils_ver}") {
+        exclude(group: 'org.apache.commons')
+    }
+    compile("net.dv8tion:JDA:$jdaVersion") {
+        exclude module: 'opus-java'
+        exclude(group: 'org.apache.commons')
+    }
+    compile("me.hypherionmc:JQLite:1.0.8") {
+        exclude(group: 'org.apache.commons')
+    }
 }
 
 jar {
@@ -54,26 +61,24 @@ configurations {
 }
 
 shadowJar {
-    configurations = [project.configurations.runtime]
+    //configurations = [project.configurations.runtime]
     dependencies {
         exclude(dependency('org.apache.logging.log4j:log4j-core:.*'))
         exclude(dependency('org.apache.logging.log4j:log4j-api:.*'))
-        exclude(dependency('org.apache.commons:commons-lang3:.*'))
         exclude(dependency('org.apache.commons:commons-lang3:.*'))
         exclude(dependency('com.google.code.gson:.*'))
         exclude(dependency('javax:.*'))
         exclude(dependency('org.jetbrains:.*'))
         exclude(dependency('net.java.dev.jna:.*'))
+        exclude(dependency(group: 'oshi-project', name: 'oshi-core', version: '1.1'))
         exclude 'META-INF/versions/9/**'
         exclude 'module-info.class'
+        exclude 'org/apache/commons/lang3/**'
 
-        relocate 'org.apache.commons.lang3', 'hypshadow.apache.commons.lang3'
         relocate 'org.apache.commons.collections4', 'hypshadow.apache.commons.collections4'
         relocate 'org.slf4j', 'hypshadow.slf4j'
         relocate 'javax.annotation', 'hypshadow.javax.annotation'
         relocate 'gnu.trove', 'hypshadow.gnu.trove'
-        relocate 'oshi', 'hypshadow.oshi'
-        relocate 'com.github.oshi', 'hypshadow.github.oshi'
         relocate 'com.fasterxml.jackson', 'hypshadow.fasterxml.jackson'
         relocate 'club.minnced', 'hypshadow.club.minnced'
         relocate 'com.iwebpp', 'hypshadow.iwebpp'
@@ -85,10 +90,7 @@ shadowJar {
         relocate 'okhttp3', 'hypshadow.okhttp3'
         relocate 'okio', 'hypshadow.okio'
         relocate 'org.json', 'hypshadow.json'
-        //relocate 'org.sqlite', 'hypshadow.sqlite'
         relocate 'pw.chew', 'hypshadow.chew'
-
-        //relocate 'com.sun.jna', 'shadow.sun.jna'
     }
     classifier ''
 }

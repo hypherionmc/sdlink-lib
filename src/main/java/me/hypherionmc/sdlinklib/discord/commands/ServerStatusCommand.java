@@ -8,8 +8,8 @@ import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import oshi.SystemInfo;
-import oshi.hardware.CentralProcessor;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.Processor;
 
 public class ServerStatusCommand extends Command {
 
@@ -31,7 +31,7 @@ public class ServerStatusCommand extends Command {
     protected void execute(CommandEvent event) {
         SystemInfo systemInfo = new SystemInfo();
         HardwareAbstractionLayer hal = systemInfo.getHardware();
-        CentralProcessor cpu = hal.getProcessor();
+        Processor[] cpu = hal.getProcessors();
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Server Information / Status");
@@ -41,31 +41,33 @@ public class ServerStatusCommand extends Command {
 
         stringBuilder
                 .append("**CPU:**\r\n```\r\n")
-                .append(cpu.toString())
+                .append(cpu[0].toString())
                 .append("```")
                 .append("\r\n");
 
-        stringBuilder
-                .append("**Memory:**\r\n```\r\n")
-                .append(SystemUtils.byteToHuman(hal.getMemory().getAvailable()))
-                .append(" free of ")
-                .append(SystemUtils.byteToHuman(hal.getMemory().getTotal()))
-                .append("```\r\n");
+        try {
+            stringBuilder
+                    .append("**Memory:**\r\n```\r\n")
+                    .append(SystemUtils.byteToHuman(hal.getMemory().getAvailable()))
+                    .append(" free of ")
+                    .append(SystemUtils.byteToHuman(hal.getMemory().getTotal()))
+                    .append("```\r\n");
+        } catch (Exception e) {}
 
         stringBuilder
                 .append("**OS:**\r\n```\r\n")
                 .append(systemInfo.getOperatingSystem().toString())
                 .append(" (")
-                .append(systemInfo.getOperatingSystem().getBitness())
+                .append(cpu[0].isCpu64bit() ? "64-Bit" : "32-Bit")
                 .append(" bit)\r\n")
                 .append("Version: ")
-                .append(systemInfo.getOperatingSystem().getVersionInfo().toString())
+                .append(systemInfo.getOperatingSystem().getVersion().toString())
                 .append("```\r\n");
 
-        stringBuilder
+        /*stringBuilder
                 .append("**System Uptime:**\r\n```\r\n")
                 .append(SystemUtils.secondsToTimestamp(systemInfo.getOperatingSystem().getSystemUptime()))
-                .append("```\r\n");
+                .append("```\r\n");*/
 
         stringBuilder.append("**__Minecraft Information__**\r\n\r\n");
 
