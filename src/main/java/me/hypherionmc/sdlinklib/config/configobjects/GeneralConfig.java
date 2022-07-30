@@ -1,7 +1,7 @@
 package me.hypherionmc.sdlinklib.config.configobjects;
 
-import me.hypherionmc.nightconfig.core.conversion.Path;
-import me.hypherionmc.nightconfig.core.conversion.SpecComment;
+import me.hypherionmc.moonconfig.core.conversion.Path;
+import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 import me.hypherionmc.sdlinklib.config.ConfigController;
 
 public class GeneralConfig {
@@ -27,7 +27,7 @@ public class GeneralConfig {
     public String botPrefix = "~";
 
     @Path("whitelisting")
-    @SpecComment("Should the bot be allowed to whitelist/un-whitelist players")
+    @SpecComment("Should the bot be allowed to whitelist/un-whitelist players. Whitelisting needs to be enabled on your server as well")
     public boolean whitelisting = false;
 
     @Path("onlyAdminsWhitelist")

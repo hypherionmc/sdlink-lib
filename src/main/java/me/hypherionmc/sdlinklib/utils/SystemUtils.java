@@ -68,14 +68,7 @@ public class SystemUtils {
         return String.format("00 hour(s), %02d minute(s), %02d second(s)", minutes, seconds);
     }
 
-    public static long meanTime(long[] values) {
-        long sum = 0L;
-        for (long v : values)
-            sum += v;
-        return sum / values.length;
-    }
-
-    public static boolean doesHavePermission(Member member) {
+    public static boolean hasPermission(Member member) {
         return member.hasPermission(Permission.ADMINISTRATOR) || member.hasPermission(Permission.KICK_MEMBERS);
     }
 }

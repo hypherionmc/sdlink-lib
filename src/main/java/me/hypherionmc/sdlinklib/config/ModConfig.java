@@ -1,7 +1,7 @@
 package me.hypherionmc.sdlinklib.config;
 
-import me.hypherionmc.nightconfig.core.conversion.Path;
-import me.hypherionmc.nightconfig.core.conversion.SpecComment;
+import me.hypherionmc.moonconfig.core.conversion.Path;
+import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 import me.hypherionmc.sdlinklib.config.configobjects.*;
 
 public class ModConfig {

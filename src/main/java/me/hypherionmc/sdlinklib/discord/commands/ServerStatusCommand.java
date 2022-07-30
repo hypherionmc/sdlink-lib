@@ -2,7 +2,7 @@ package me.hypherionmc.sdlinklib.discord.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import me.hypherionmc.sdlinklib.config.ModConfig;
+import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -13,12 +13,10 @@ import oshi.hardware.HardwareAbstractionLayer;
 
 public class ServerStatusCommand extends Command {
 
-    private final ModConfig config;
     private final IMinecraftHelper minecraftHelper;
 
-    public ServerStatusCommand(IMinecraftHelper helper, ModConfig config) {
-        this.config = config;
-        this.minecraftHelper = helper;
+    public ServerStatusCommand(BotController controller) {
+        this.minecraftHelper = controller.getMinecraftHelper();
 
         this.name = "status";
         this.help = "View information about your server";

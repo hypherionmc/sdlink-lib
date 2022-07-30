@@ -1,7 +1,7 @@
 package me.hypherionmc.sdlinklib.config.configobjects;
 
-import me.hypherionmc.nightconfig.core.conversion.Path;
-import me.hypherionmc.nightconfig.core.conversion.SpecComment;
+import me.hypherionmc.moonconfig.core.conversion.Path;
+import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 
 public class ChatSettingsConfig {
 
@@ -13,9 +13,21 @@ public class ChatSettingsConfig {
     @SpecComment("If this ID is set, event messages will be posted in this channel instead of the chat channel")
     public long logChannelID = 0;
 
+    @Path("playerAvatarType")
+    @SpecComment("The type of image to use as the player icon in messages. Valid entries are: AVATAR, HEAD, BODY, COMBO")
+    public ImageType playerAvatarType = ImageType.COMBO;
+
     @Path("useEmbeds")
-    @SpecComment("Should embeds be used instead of plain text messages")
+    @SpecComment("Should embeds be used instead of plain text messages for Chat Messages")
     public boolean useEmbeds = true;
+
+    @Path("useEmbedsLog")
+    @SpecComment("Should embeds be used instead of plain text messages for Log Messages")
+    public boolean useEmbedsLog = true;
+
+    @Path("mcPrefix")
+    @SpecComment("Prefix to add to Minecraft when a message is relayed from Discord. Supports MC formatting. Use %user% for the Discord Username")
+    public String mcPrefix = "\u00A7e[Discord]\u00A7r %user%: ";
 
     @Path("ignoreBots")
     @SpecComment("Should messages from bots be relayed")

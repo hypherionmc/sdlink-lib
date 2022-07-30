@@ -3,8 +3,8 @@ package me.hypherionmc.sdlinklib.discord.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.jqlite.data.SQLiteTable;
-import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
+import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.utils.PlayerUtils;
 import net.dv8tion.jda.api.Permission;
 import org.apache.commons.lang3.tuple.Pair;
@@ -12,15 +12,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
+
 public class UnLinkCommand extends Command {
 
-    private UserTable userTable;
-    private ModConfig config;
+    private UserTable userTable = new UserTable();
     final Pattern pattern = Pattern.compile("\\[MC: [a-zA-Z]+]\\s+", Pattern.CASE_INSENSITIVE);
 
-    public UnLinkCommand(UserTable userTable, ModConfig config) {
-        this.userTable = userTable;
-        this.config = config;
+    public UnLinkCommand(BotController controller) {
         this.guildOnly = true;
 
         this.name = "unlink";
@@ -57,7 +56,7 @@ public class UnLinkCommand extends Command {
                 try {
                     event.getMember().modifyNickname(nickName).queue();
                 } catch (Exception e) {
-                    if (config.general.debugging) {
+                    if (modConfig.general.debugging) {
                         e.printStackTrace();
                     }
                 }
@@ -65,5 +64,4 @@ public class UnLinkCommand extends Command {
             }
         }
     }
-
 }

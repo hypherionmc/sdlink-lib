@@ -47,5 +47,4 @@ public class PlayerUtils {
 
         return UUID.fromString(String.join("-", strings));
     }
-
 }

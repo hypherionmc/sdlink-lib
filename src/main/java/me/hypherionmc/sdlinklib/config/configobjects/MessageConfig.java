@@ -1,7 +1,7 @@
 package me.hypherionmc.sdlinklib.config.configobjects;
 
-import me.hypherionmc.nightconfig.core.conversion.Path;
-import me.hypherionmc.nightconfig.core.conversion.SpecComment;
+import me.hypherionmc.moonconfig.core.conversion.Path;
+import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 
 public class MessageConfig {
 
@@ -28,6 +28,14 @@ public class MessageConfig {
     @Path("playerLeft")
     @SpecComment("Player Left Message. Use %player% to display the player name")
     public String playerLeft = "%player% has left the server!";
+
+    @Path("achievements")
+    @SpecComment("Achievement Messages. Available variables: %player%, %title%, %description%")
+    public String achievements = "%player% has made the advancement [%title%]: %description%";
+
+    @Path("chat")
+    @SpecComment("Chat Messages. Available variables: %player%, %message%")
+    public String chat = "%message%";
 
     @Path("inviteMessage")
     @SpecComment("The message to show when someone uses /discord command. You can use %inviteurl%")

@@ -10,16 +10,13 @@ import java.util.List;
 
 public class LinkedCommand extends Command {
 
-    private UserTable table;
+    private UserTable table = new UserTable();
 
-    public LinkedCommand(UserTable table) {
-        this.table = table;
-
+    public LinkedCommand() {
         this.name = "linkedacc";
         this.help = "View a list of linked Discord and MC accounts";
         this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
     }
-
 
     @Override
     protected void execute(CommandEvent event) {
@@ -39,6 +36,5 @@ public class LinkedCommand extends Command {
 
         builder.setDescription(content.toString());
         event.reply(builder.build());
-
     }
 }

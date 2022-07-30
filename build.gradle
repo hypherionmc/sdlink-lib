@@ -1,5 +1,3 @@
-import org.gradle.api.publish.maven.MavenPublication
-
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
@@ -24,25 +22,31 @@ repositories {
 }
 
 dependencies {
+    // Compile Only, Not Shadowed
+
+    // Logging
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4j_ver
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j_ver
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
-    compile('org.apache.commons:commons-collections4:4.4')
-    compile group: 'org.json', name: 'json', version: '20211205'
-    compile group: 'com.github.oshi', name: 'oshi-core', version: '5.8.5'
-    compile('club.minnced:discord-webhooks:0.7.5')
-    compile "me.hypherionmc.night-config:toml:${nightconf_ver}"
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: log4j_ver
 
-    compile ("pw.chew:jda-chewtils:${jdautils_ver}") {
-        exclude(group: 'org.apache.commons')
-    }
-    compile("net.dv8tion:JDA:$jdaVersion") {
-        exclude module: 'opus-java'
-        exclude(group: 'org.apache.commons')
-    }
-    compile("me.hypherionmc:JQLite:1.0.4") {
-        exclude(group: 'org.apache.commons')
-    }
+    // Utilities
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
+
+    // Core Dependencies, Shadowed
+
+    // Discord
+    compile ("pw.chew:jda-chewtils:${jdautils_ver}") { exclude(group: 'org.apache.commons') }
+    compile("net.dv8tion:JDA:$jdaVersion") { exclude module: 'opus-java' exclude(group: 'org.apache.commons') }
+    compile("club.minnced:discord-webhooks:${webhooks_ver}")
+
+    // Utilities
+    compile("org.apache.commons:commons-collections4:${commons4_ver}")
+    compile group: 'org.json', name: 'json', version: json_ver
+    compile group: 'com.github.oshi', name: 'oshi-core', version: oshi_ver
+
+    compile "me.hypherionmc.moon-config:core:${moonconf_ver}"
+    compile "me.hypherionmc.moon-config:toml:${moonconf_ver}"
+    compile("me.hypherionmc:JQLite:${jqlite_ver}") { exclude(group: 'org.apache.commons') }
 }
 
 jar {
@@ -68,7 +72,7 @@ shadowJar {
     //configurations = [project.configurations.runtime]
     dependencies {
         exclude(dependency('org.apache.logging.log4j:log4j-core:.*'))
-        exclude(dependency('org.apache.logging.log4j:log4j-api:.*'))
+        exclude(dependency('org.apache.logging.log4j:log4j-core:.*'))
         exclude(dependency('org.apache.commons:commons-lang3:.*'))
         exclude(dependency('com.google.code.gson:.*'))
         exclude(dependency('javax:.*'))
@@ -81,6 +85,7 @@ shadowJar {
         exclude 'META-INF/versions/9/**'
         exclude 'module-info.class'
         exclude 'org/apache/commons/lang3/**'
+        exclude 'org/apache/logging/**'
 
         relocate 'org.apache.commons.collections4', 'hypshadow.apache.commons.collections4'
         relocate 'org.slf4j', 'hypshadow.slf4j'

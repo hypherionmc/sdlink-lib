@@ -2,6 +2,7 @@ package me.hypherionmc.sdlinklib.discord.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 
 import java.util.List;
@@ -10,10 +11,10 @@ public class PlayerListCommand extends Command {
 
     private final IMinecraftHelper minecraftHelper;
 
-    public PlayerListCommand(IMinecraftHelper helper) {
+    public PlayerListCommand(BotController controller) {
         this.name = "list";
         this.help = "List players on the server";
-        this.minecraftHelper = helper;
+        this.minecraftHelper = controller.getMinecraftHelper();
     }
 
     @Override
@@ -28,6 +29,5 @@ public class PlayerListCommand extends Command {
         }
 
         event.reply(builder.toString());
-
     }
 }

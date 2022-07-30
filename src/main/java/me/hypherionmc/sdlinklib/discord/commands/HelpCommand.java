@@ -2,7 +2,7 @@ package me.hypherionmc.sdlinklib.discord.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import me.hypherionmc.sdlinklib.discord.BotEngine;
+import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
@@ -10,9 +10,9 @@ import java.util.List;
 
 public class HelpCommand extends Command {
 
-    private final BotEngine engine;
+    private final BotController engine;
 
-    public HelpCommand(BotEngine engine) {
+    public HelpCommand(BotController engine) {
         this.engine = engine;
         this.name = "help";
         this.help = "Bot commands and help";
@@ -32,5 +32,4 @@ public class HelpCommand extends Command {
         builder.setFooter("Requested by " + event.getMember().getEffectiveName());
         event.reply(builder.build());
     }
-
 }

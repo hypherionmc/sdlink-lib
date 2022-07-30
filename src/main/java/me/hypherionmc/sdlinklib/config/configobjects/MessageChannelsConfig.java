@@ -1,7 +1,7 @@
 package me.hypherionmc.sdlinklib.config.configobjects;
 
-import me.hypherionmc.nightconfig.core.conversion.Path;
-import me.hypherionmc.nightconfig.core.conversion.SpecComment;
+import me.hypherionmc.moonconfig.core.conversion.Path;
+import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 
 /**
  * @author HypherionSA
@@ -11,17 +11,17 @@ public class MessageChannelsConfig {
 
     @Path("statusInChat")
     @SpecComment("Should Server Starting/Started/Stopping/Stopped Messages be in chat. If false, it will appear in the log channel")
-    public boolean stopStartInChat = true;
+    public boolean stopStartInChat = false;
 
     @Path("joinLeaveInChat")
     @SpecComment("Should Join/Leave Messages be in chat. If false, it will appear in the log channel")
-    public boolean joinLeaveInChat = true;
+    public boolean joinLeaveInChat = false;
 
     @Path("advancementsInChat")
     @SpecComment("Should Advancement Messages be in chat. If false, it will appear in the log channel")
-    public boolean advancementsInChat = true;
+    public boolean advancementsInChat = false;
 
     @Path("deathInChat")
     @SpecComment("Should Death messages be in chat. If false, it will appear in the log channel")
-    public boolean deathInChat = true;
+    public boolean deathInChat = false;
 }

@@ -1,21 +1,20 @@
 package me.hypherionmc.sdlinklib.config;
 
-import me.hypherionmc.nightconfig.core.CommentedConfig;
-import me.hypherionmc.nightconfig.core.Config;
-import me.hypherionmc.nightconfig.core.conversion.ObjectConverter;
-import me.hypherionmc.nightconfig.core.file.CommentedFileConfig;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import me.hypherionmc.moonconfig.core.CommentedConfig;
+import me.hypherionmc.moonconfig.core.Config;
+import me.hypherionmc.moonconfig.core.conversion.ObjectConverter;
+import me.hypherionmc.moonconfig.core.file.CommentedFileConfig;
+import me.hypherionmc.moonconfig.core.file.FileWatcher;
+import me.hypherionmc.sdlinklib.discord.BotController;
 
 import java.io.File;
 
 public class ConfigController {
 
     private final File configPath;
-    public static final Logger logger = LogManager.getLogger("Simple Discord Link");
-    public static int configVer = 7;
+    public static int configVer = 10;
 
-    private ModConfig modConfig;
+    public static ModConfig modConfig;
 
     public ConfigController(String configPath) {
         File path = new File(configPath);
@@ -35,6 +34,15 @@ public class ConfigController {
             configUpgrade();
         }
         loadConfig();
+        FileWatcher watcher = new FileWatcher();
+
+        try {
+            watcher.addWatch(configPath, this::loadConfig);
+        } catch (Exception e) {
+            if (modConfig.general.debugging) {
+                BotController.LOGGER.error("Failed to register config watcher: {}", e.getMessage());
+            }
+        }
     }
 
     private void configUpgrade() {
@@ -89,9 +97,4 @@ public class ConfigController {
         converter.toConfig(conf, config);
         config.save();
     }
-
-    public ModConfig getModConfig() {
-        return modConfig;
-    }
-
 }

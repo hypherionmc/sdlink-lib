@@ -2,8 +2,8 @@ package me.hypherionmc.sdlinklib.discord.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
+import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.PlayerUtils;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
@@ -14,17 +14,16 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
+import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
+
 public class WhitelistCommand extends Command {
 
-    private WhitelistTable whitelistTable;
-    private ModConfig modConfig;
+    private WhitelistTable whitelistTable = new WhitelistTable();
 
     private IMinecraftHelper minecraftHelper;
 
-    public WhitelistCommand(IMinecraftHelper helper, WhitelistTable whitelistTable, ModConfig modConfig) {
-        this.whitelistTable = whitelistTable;
-        this.minecraftHelper = helper;
-        this.modConfig = modConfig;
+    public WhitelistCommand(BotController controller) {
+        this.minecraftHelper = controller.getMinecraftHelper();
 
         this.name = "whitelist";
         this.help = "Control Whitelisting if enabled";
@@ -48,7 +47,7 @@ public class WhitelistCommand extends Command {
         } else {
             if (modConfig.general.whitelisting) {
                 if (minecraftHelper.isWhitelistingEnabled()) {
-                    if (modConfig.general.adminWhitelistOnly && !event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
+                    if (modConfig.general.adminWhitelistOnly && !SystemUtils.hasPermission(event.getMember())) {
                         event.reply("Sorry, only Admins/Members with Kick Permissions can whitelist players");
                     } else {
                         String[] args = event.getArgs().split(" ");
@@ -64,7 +63,7 @@ public class WhitelistCommand extends Command {
                                 } else {
                                     whitelistTable = new WhitelistTable();
                                     List<WhitelistTable> tables = whitelistTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
-                                    if (!tables.isEmpty() && !SystemUtils.doesHavePermission(event.getMember())) {
+                                    if (!tables.isEmpty() && !SystemUtils.hasPermission(event.getMember())) {
                                         event.reply("You have already whitelisted a player on this server! Only one whitelist per player is allowed. Please ask an admin for assistance");
                                     } else {
                                         whitelistTable.username = player.getLeft();
@@ -84,7 +83,7 @@ public class WhitelistCommand extends Command {
                             whitelistTable = new WhitelistTable();
                             whitelistTable.fetch("discordID = '" + event.getAuthor().getIdLong() + "'");
 
-                            if ((whitelistTable.username == null || !whitelistTable.username.equalsIgnoreCase(args[1])) && !SystemUtils.doesHavePermission(event.getMember())) {
+                            if ((whitelistTable.username == null || !whitelistTable.username.equalsIgnoreCase(args[1])) && !SystemUtils.hasPermission(event.getMember())) {
                                 event.reply("Sorry, you cannot un-whitelist this player");
                             } else {
                                 Pair<String, String> player = PlayerUtils.fetchUUID(args[1]);

@@ -2,23 +2,24 @@ package me.hypherionmc.sdlinklib.discord.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
+import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.utils.PlayerUtils;
 import net.dv8tion.jda.api.Permission;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
+import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
+
 public class LinkCommand extends Command {
 
-    private UserTable userTable;
-    private ModConfig config;
+    private UserTable userTable = new UserTable();
+    private BotController controller;
 
-    public LinkCommand(UserTable userTable, ModConfig config) {
-        this.userTable = userTable;
-        this.config = config;
+    public LinkCommand(BotController controller) {
         this.guildOnly = true;
+        this.controller = controller;
 
         this.name = "link";
         this.help = "Link your Minecraft and Discord account together";
@@ -54,7 +55,7 @@ public class LinkCommand extends Command {
                try {
                    event.getMember().modifyNickname(nickName).queue();
                } catch (Exception e) {
-                   if (config.general.debugging) {
+                   if (modConfig.general.debugging) {
                        e.printStackTrace();
                    }
                }

@@ -1,7 +1,7 @@
 package me.hypherionmc.sdlinklib.config.configobjects;
 
-import me.hypherionmc.nightconfig.core.conversion.Path;
-import me.hypherionmc.nightconfig.core.conversion.SpecComment;
+import me.hypherionmc.moonconfig.core.conversion.Path;
+import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 
 public class WebhookConfig {
 
