@@ -56,6 +56,8 @@ public class BotController {
     private final IMinecraftHelper minecraftHelper;
     private DiscordEventHandler discordEventHandler;
 
+    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=738543616&scope=bot";
+
     // Thread Manager
     public static final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -162,9 +164,10 @@ public class BotController {
         AtomicInteger errCount = new AtomicInteger();
 
         if (isBotReady()) {
+            LOGGER.info("Discord Invite Link for Bot: {}", DISCORD_INVITE.replace("{bot_id}", jda.getSelfUser().getId()));
             if (jda.getGuilds().isEmpty()) {
                 errCount.incrementAndGet();
-                builder.append(errCount.get()).append(") ").append("Bot does not appear to be in any servers. You need to invite the bot to your discord server before chat relays will work").append("\r\n");
+                builder.append(errCount.get()).append(") ").append("Bot does not appear to be in any servers. You need to invite the bot to your discord server before chat relays will work. Use link ").append(DISCORD_INVITE.replace("{bot_id}", jda.getSelfUser().getId())).append(" to invite the bot.").append("\r\n");
             } else {
                 if (jda.getGuilds().size() > 1) {
                     errCount.incrementAndGet();
