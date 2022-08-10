@@ -342,6 +342,10 @@ public class BotController {
             user = username;
         }
 
+        if (username.equalsIgnoreCase("server")) {
+            user = modConfig.webhookConfig.serverName;
+        }
+
         builder.setUsername(user);
         builder.setAvatarUrl(avatarUrl);
 
@@ -381,6 +385,9 @@ public class BotController {
             if (modConfig.chatConfig.useEmbeds) {
                 channel.sendMessageEmbeds(builder.build()).complete();
             } else {
+                if (username.equalsIgnoreCase("server")) {
+                    username = modConfig.webhookConfig.serverName;
+                }
                 channel.sendMessage(isChat ? "**" + username + "**: " + message : "*" + message + "*").complete();
             }
         }
@@ -391,6 +398,10 @@ public class BotController {
 
         if (isChat && !modConfig.messageConfig.chat.contains("%player%")) {
             user = username;
+        }
+
+        if (username.equalsIgnoreCase("server")) {
+            user = modConfig.webhookConfig.serverName;
         }
 
         EmbedBuilder builder = new EmbedBuilder();
