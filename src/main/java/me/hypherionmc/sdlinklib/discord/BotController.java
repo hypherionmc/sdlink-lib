@@ -19,6 +19,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -191,7 +193,7 @@ public class BotController {
                             errCount.incrementAndGet();
                             builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Manage Webhooks").append("\r\n");
                         }
-                        if (!botPerms.contains(Permission.MESSAGE_WRITE)) {
+                        if (!botPerms.contains(Permission.MESSAGE_SEND)) {
                             errCount.incrementAndGet();
                             builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Send Messages").append("\r\n");
                         }
@@ -220,11 +222,11 @@ public class BotController {
                             } else {
                                 EnumSet<Permission> chatPerms = bot.getPermissionsExplicit(chatChannel);
 
-                                if (!chatPerms.contains(Permission.MESSAGE_READ)) {
+                                if (!chatPerms.contains(Permission.VIEW_CHANNEL)) {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: View Channel").append("\r\n");
                                 }
-                                if (!chatPerms.contains(Permission.MESSAGE_WRITE)) {
+                                if (!chatPerms.contains(Permission.MESSAGE_SEND)) {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Send Messages").append("\r\n");
                                 }
@@ -248,7 +250,7 @@ public class BotController {
                             } else {
                                 EnumSet<Permission> eventPerms = bot.getPermissionsExplicit(eventChannel);
 
-                                if (!eventPerms.contains(Permission.MESSAGE_READ)) {
+                                if (!eventPerms.contains(Permission.VIEW_CHANNEL)) {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: View Channel").append("\r\n");
                                 }
@@ -256,7 +258,7 @@ public class BotController {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Embed Links").append("\r\n");
                                 }
-                                if (!eventPerms.contains(Permission.MESSAGE_WRITE)) {
+                                if (!eventPerms.contains(Permission.MESSAGE_SEND)) {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Send Messages").append("\r\n");
                                 }

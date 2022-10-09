@@ -4,9 +4,9 @@ import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +44,7 @@ public class DiscordEventHandler extends ListenerAdapter {
         threadPool.scheduleAtFixedRate(() -> {
             try {
                 if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
-                    Activity act = Activity.of(Activity.ActivityType.DEFAULT, modConfig.general.botStatus
+                    Activity act = Activity.of(Activity.ActivityType.PLAYING, modConfig.general.botStatus
                             .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
                             .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())));
 
