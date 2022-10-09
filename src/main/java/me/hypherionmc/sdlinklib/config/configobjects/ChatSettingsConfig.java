@@ -3,27 +3,14 @@ package me.hypherionmc.sdlinklib.config.configobjects;
 import me.hypherionmc.moonconfig.core.conversion.Path;
 import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ChatSettingsConfig {
-
-    @Path("channelID")
-    @SpecComment("The ID of the channel to post in and relay messages from. This is still needed, even in webhook mode")
-    public long channelID = 0;
-
-    @Path("logChannelID")
-    @SpecComment("If this ID is set, event messages will be posted in this channel instead of the chat channel")
-    public long logChannelID = 0;
 
     @Path("playerAvatarType")
     @SpecComment("The type of image to use as the player icon in messages. Valid entries are: AVATAR, HEAD, BODY, COMBO")
     public ImageType playerAvatarType = ImageType.COMBO;
-
-    @Path("useEmbeds")
-    @SpecComment("Should embeds be used instead of plain text messages for Chat Messages")
-    public boolean useEmbeds = true;
-
-    @Path("useEmbedsLog")
-    @SpecComment("Should embeds be used instead of plain text messages for Log Messages")
-    public boolean useEmbedsLog = true;
 
     @Path("mcPrefix")
     @SpecComment("Prefix to add to Minecraft when a message is relayed from Discord. Supports MC formatting. Use %user% for the Discord Username")
@@ -73,12 +60,12 @@ public class ChatSettingsConfig {
     @SpecComment("Should commands be posted to discord")
     public boolean broadcastCommands = true;
 
+    @Path("ignoredCommands")
+    @SpecComment("Commands that should not be broadcasted to discord")
+    public List<String> ignoredCommands = new ArrayList<String>() {{ add("particle"); add("login"); }};
+
     @Path("sendTellRaw")
     @SpecComment("Should Tell Raw messages be posted")
     public boolean sendTellRaw = true;
-
-    @Path("inviteCommandEnabled")
-    @SpecComment("Should the ~discord command be enabled")
-    public boolean inviteCommandEnabled = false;
 
 }

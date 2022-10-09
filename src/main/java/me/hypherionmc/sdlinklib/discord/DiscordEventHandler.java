@@ -26,7 +26,7 @@ public class DiscordEventHandler extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (event.getChannel().getIdLong() == modConfig.chatConfig.channelID) {
+        if (event.getChannel().getIdLong() == modConfig.channelConfig.channelID) {
             if (
                     (modConfig.chatConfig.ignoreBots && !event.getAuthor().isBot()) &&
                             !event.isWebhookMessage() &&
@@ -44,25 +44,25 @@ public class DiscordEventHandler extends ListenerAdapter {
         threadPool.scheduleAtFixedRate(() -> {
             try {
                 if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
-                    Activity act = Activity.of(Activity.ActivityType.PLAYING, modConfig.general.botStatus
+                    Activity act = Activity.of(Activity.ActivityType.PLAYING, modConfig.botConfig.botStatus
                             .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
                             .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())));
 
                     event.getJDA().getPresence().setActivity(act);
                 }
             } catch (Exception e) {
-                if (modConfig.general.debugging) {
-                    BotController.LOGGER.error(e.getMessage());
+                if (modConfig.generalConfig.debugging) {
+                    BotController.LOGGER.info(e.getMessage());
                 }
             }
-        }, modConfig.general.activityUpdateInterval, modConfig.general.activityUpdateInterval, TimeUnit.SECONDS);
+        }, modConfig.botConfig.activityUpdateInterval, modConfig.botConfig.activityUpdateInterval, TimeUnit.SECONDS);
 
         threadPool.scheduleAtFixedRate(() -> {
             try {
-                if (event.getJDA().getStatus() == JDA.Status.CONNECTED && (modConfig.general.channelTopic != null && !modConfig.general.channelTopic.isEmpty())) {
-                    TextChannel channel = event.getJDA().getTextChannelById(modConfig.chatConfig.channelID);
+                if (event.getJDA().getStatus() == JDA.Status.CONNECTED && (modConfig.botConfig.channelTopic != null && !modConfig.botConfig.channelTopic.isEmpty())) {
+                    TextChannel channel = event.getJDA().getTextChannelById(modConfig.channelConfig.channelID);
                     if (channel != null) {
-                        String topic = modConfig.general.channelTopic
+                        String topic = modConfig.botConfig.channelTopic
                                 .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
                                 .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount()))
                                 .replace("%uptime%", SystemUtils.secondsToTimestamp(minecraftHelper.getServerUptime()));
@@ -70,8 +70,8 @@ public class DiscordEventHandler extends ListenerAdapter {
                     }
                 }
             } catch (Exception e) {
-                if (modConfig.general.debugging) {
-                    BotController.LOGGER.error(e.getMessage());
+                if (modConfig.generalConfig.debugging) {
+                    BotController.LOGGER.info(e.getMessage());
                 }
             }
         }, 6, 6, TimeUnit.MINUTES);

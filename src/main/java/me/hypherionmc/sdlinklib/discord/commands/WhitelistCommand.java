@@ -45,9 +45,9 @@ public class WhitelistCommand extends Command {
 
             event.reply(embedBuilder.build());
         } else {
-            if (modConfig.general.whitelisting) {
+            if (modConfig.generalConfig.whitelisting) {
                 if (minecraftHelper.isWhitelistingEnabled()) {
-                    if (modConfig.general.adminWhitelistOnly && !SystemUtils.hasPermission(event.getMember())) {
+                    if (modConfig.generalConfig.adminWhitelistOnly && !SystemUtils.hasPermission(event.getMember())) {
                         event.reply("Sorry, only Admins/Members with Kick Permissions can whitelist players");
                     } else {
                         String[] args = event.getArgs().split(" ");

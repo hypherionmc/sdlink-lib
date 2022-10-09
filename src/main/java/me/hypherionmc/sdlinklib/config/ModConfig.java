@@ -8,13 +8,21 @@ public class ModConfig {
 
     @Path("general")
     @SpecComment("General Mod Config")
-    public GeneralConfig general = new GeneralConfig();
+    public GeneralConfig generalConfig = new GeneralConfig();
 
-    @Path("webhookConfig")
+    @Path("botConfig")
+    @SpecComment("Config specific to the discord bot")
+    public BotSettingsConfig botConfig = new BotSettingsConfig();
+
+    @Path("channels")
+    @SpecComment("Config relating to the discord channels to use with the mod")
+    public ChannelConfig channelConfig = new ChannelConfig();
+
+    @Path("webhooks")
     @SpecComment("Webhook Config")
     public WebhookConfig webhookConfig = new WebhookConfig();
 
-    @Path("chatConfig")
+    @Path("chat")
     @SpecComment("Chat Config")
     public ChatSettingsConfig chatConfig = new ChatSettingsConfig();
 

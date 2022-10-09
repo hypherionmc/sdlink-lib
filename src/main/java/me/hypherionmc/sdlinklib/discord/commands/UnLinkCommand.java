@@ -56,7 +56,7 @@ public class UnLinkCommand extends Command {
                 try {
                     event.getMember().modifyNickname(nickName).queue();
                 } catch (Exception e) {
-                    if (modConfig.general.debugging) {
+                    if (modConfig.generalConfig.debugging) {
                         e.printStackTrace();
                     }
                 }

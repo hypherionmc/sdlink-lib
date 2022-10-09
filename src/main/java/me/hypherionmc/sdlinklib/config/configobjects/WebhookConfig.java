@@ -9,13 +9,21 @@ public class WebhookConfig {
     @SpecComment("Should webhook messages be used")
     public boolean enabled = false;
 
-    @Path("webhookurl")
+    @Path("chatWebhook")
     @SpecComment("The URL of the channel webhook to use for Chat Messages")
-    public String webhookurl = "";
+    public String chatWebhook = "";
 
-    @Path("webhookurlLogs")
-    @SpecComment("The URL of the channel webhook to use for Server Messages Messages")
-    public String webhookurlLogs = "";
+    @Path("eventsWebhook")
+    @SpecComment("The URL of the channel webhook to use for Server Messages")
+    public String eventsWebhook = "";
+
+    @Path("chatEmbeds")
+    @SpecComment("Use EMBED style messages for chat channel messages")
+    public boolean chatEmbeds = false;
+
+    @Path("eventEmbeds")
+    @SpecComment("Use EMBED style messages for event channel messages")
+    public boolean eventEmbeds = false;
 
     @Path("serverAvatar")
     @SpecComment("A DIRECT link to an image to use as the avatar for server messages. Also used for embeds")

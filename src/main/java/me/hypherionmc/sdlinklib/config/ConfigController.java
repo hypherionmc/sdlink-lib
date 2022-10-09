@@ -12,7 +12,7 @@ import java.io.File;
 public class ConfigController {
 
     private final File configPath;
-    public static int configVer = 10;
+    public static int configVer = 11;
 
     public static ModConfig modConfig;
 
@@ -39,8 +39,8 @@ public class ConfigController {
         try {
             watcher.addWatch(configPath, this::loadConfig);
         } catch (Exception e) {
-            if (modConfig.general.debugging) {
-                BotController.LOGGER.error("Failed to register config watcher: {}", e.getMessage());
+            if (modConfig.generalConfig.debugging) {
+                BotController.LOGGER.info("Failed to register config watcher: {}", e.getMessage());
             }
         }
     }
@@ -53,27 +53,33 @@ public class ConfigController {
         newConfig.clear();
         oldConfig.load();
 
-        if (!oldConfig.contains("general.configVersion") || oldConfig.getInt("general.configVersion") != configVer) {
+        if (oldConfig.contains("general.configVersion") && oldConfig.getInt("general.configVersion") < 11) {
+            configPath.renameTo(new File(configPath.getAbsolutePath().replace(".toml", ".old")));
+            saveConfig(new ModConfig());
+            BotController.LOGGER.info("Your config file cannot be auto-upgraded. The old one has been backed up and a new one created. Please re-configure the mods");
+        } else {
+            if (!oldConfig.contains("general.configVersion") || oldConfig.getInt("general.configVersion") != configVer) {
 
-            ObjectConverter objectConverter = new ObjectConverter();
-            objectConverter.toConfig(new ModConfig(), newConfig);
+                ObjectConverter objectConverter = new ObjectConverter();
+                objectConverter.toConfig(new ModConfig(), newConfig);
 
-            oldConfig.valueMap().forEach((key, value) -> {
-                if (value instanceof CommentedConfig) {
-                    CommentedConfig commentedConfig = (CommentedConfig) value;
-                    commentedConfig.valueMap().forEach((subKey, subValue) -> {
-                        newConfig.set(key + "." + subKey, subValue);
-                    });
-                } else {
-                    newConfig.set(key, value);
-                }
-            });
+                oldConfig.valueMap().forEach((key, value) -> {
+                    if (value instanceof CommentedConfig) {
+                        CommentedConfig commentedConfig = (CommentedConfig) value;
+                        commentedConfig.valueMap().forEach((subKey, subValue) -> {
+                            newConfig.set(key + "." + subKey, subValue);
+                        });
+                    } else {
+                        newConfig.set(key, value);
+                    }
+                });
 
-            configPath.renameTo(new File(configPath.getAbsolutePath().replace(".toml", ".bak")));
-            newConfig.set("general.configVersion", configVer);
-            newConfig.save();
-            newConfig.close();
-            oldConfig.close();
+                configPath.renameTo(new File(configPath.getAbsolutePath().replace(".toml", ".bak")));
+                newConfig.set("general.configVersion", configVer);
+                newConfig.save();
+                newConfig.close();
+                oldConfig.close();
+            }
         }
 
     }
