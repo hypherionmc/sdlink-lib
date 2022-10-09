@@ -26,13 +26,26 @@ public class DiscordEventHandler extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (event.getChannel().getIdLong() == modConfig.channelConfig.channelID) {
-            if (
-                    (modConfig.chatConfig.ignoreBots && !event.getAuthor().isBot()) &&
-                            !event.isWebhookMessage() &&
-                            event.getAuthor() != event.getJDA().getSelfUser()
-            ) {
-                minecraftHelper.discordMessageEvent(event.getAuthor().getName(), event.getMessage().getContentStripped());
+        try {
+            if (event.getChannel().getIdLong() != modConfig.channelConfig.channelID)
+                return;
+
+            if (event.isWebhookMessage())
+                return;
+
+            if (event.getAuthor() == event.getJDA().getSelfUser())
+                return;
+
+            if (event.getAuthor().isBot() && modConfig.chatConfig.ignoreBots)
+                return;
+
+            if (modConfig.generalConfig.debugging) {
+                BotController.LOGGER.info("Sending Message from {}: {}", event.getAuthor().getName(), event.getMessage().getContentStripped());
+            }
+            minecraftHelper.discordMessageEvent(event.getAuthor().getName(), event.getMessage().getContentStripped());
+        } catch (Exception e) {
+            if (modConfig.generalConfig.debugging) {
+                e.printStackTrace();
             }
         }
     }
