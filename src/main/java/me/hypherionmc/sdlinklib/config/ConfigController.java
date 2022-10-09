@@ -12,7 +12,7 @@ import java.io.File;
 public class ConfigController {
 
     private final File configPath;
-    public static int configVer = 11;
+    public static int configVer = 14;
 
     public static ModConfig modConfig;
 
@@ -90,8 +90,8 @@ public class ConfigController {
         ObjectConverter converter = new ObjectConverter();
         CommentedFileConfig config = CommentedFileConfig.builder(configPath).build();
         config.load();
-
         modConfig = converter.toObject(config, ModConfig::new);
+        config.close();
     }
 
     private void saveConfig(Object conf) {
@@ -102,5 +102,6 @@ public class ConfigController {
 
         converter.toConfig(conf, config);
         config.save();
+        config.close();
     }
 }

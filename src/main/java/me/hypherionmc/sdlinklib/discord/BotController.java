@@ -59,7 +59,7 @@ public class BotController {
     private final IMinecraftHelper minecraftHelper;
     private DiscordEventHandler discordEventHandler;
 
-    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=738543616&scope=bot";
+    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=738543616&scope=bot%20applications.commands";
 
     // Thread Manager
     public static final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
@@ -107,9 +107,10 @@ public class BotController {
                     jda = JDABuilder.createLight(
                             modConfig.botConfig.botToken,
                             GatewayIntent.GUILD_MEMBERS,
-                            GatewayIntent.GUILD_MESSAGES
+                            GatewayIntent.GUILD_MESSAGES,
+                            GatewayIntent.MESSAGE_CONTENT
                     )
-                    .setMemberCachePolicy(MemberCachePolicy.ONLINE)
+                    .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .setBulkDeleteSplittingEnabled(true)
                     .setEventManager(new ThreadedEventManager())
@@ -122,15 +123,10 @@ public class BotController {
                     clientBuilder.useHelpBuilder(false);
 
                     discordEventHandler = new DiscordEventHandler(this);
+                    CommandManager commandManager = new CommandManager(this);
 
                     commandClient = clientBuilder.build();
-                    commandClient.addCommand(new PlayerListCommand(this));
-                    commandClient.addCommand(new WhitelistCommand(this));
-                    commandClient.addCommand(new ServerStatusCommand(this));
-                    commandClient.addCommand(new LinkCommand(this));
-                    commandClient.addCommand(new UnLinkCommand(this));
-                    commandClient.addCommand(new LinkedCommand());
-                    commandClient.addCommand(new HelpCommand(this));
+                    commandManager.register(commandClient);
 
                     jda.addEventListener(commandClient, discordEventHandler);
                     jda.setAutoReconnect(true);
@@ -267,7 +263,7 @@ public class BotController {
     public void checkWhitelisting() {
         if (modConfig.generalConfig.whitelisting) {
             if (!minecraftHelper.isWhitelistingEnabled()) {
-                LOGGER.warn("Server-side Whitelist is disabled. Whitelist commands will not work");
+                LOGGER.warn("Server-Side Whitelist is disabled. Whitelist commands will not work");
             }
         }
     }

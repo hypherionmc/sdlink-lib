@@ -5,8 +5,8 @@ import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,42 +39,44 @@ public class DiscordEventHandler extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-        BotController.LOGGER.info("Successfully connected to discord");
+       if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
+           BotController.LOGGER.info("Successfully connected to discord");
 
-        threadPool.scheduleAtFixedRate(() -> {
-            try {
-                if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
-                    Activity act = Activity.of(Activity.ActivityType.PLAYING, modConfig.botConfig.botStatus
-                            .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
-                            .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())));
+           threadPool.scheduleAtFixedRate(() -> {
+               try {
+                   if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
+                       Activity act = Activity.of(Activity.ActivityType.PLAYING, modConfig.botConfig.botStatus
+                               .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
+                               .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())));
 
-                    event.getJDA().getPresence().setActivity(act);
-                }
-            } catch (Exception e) {
-                if (modConfig.generalConfig.debugging) {
-                    BotController.LOGGER.info(e.getMessage());
-                }
-            }
-        }, modConfig.botConfig.activityUpdateInterval, modConfig.botConfig.activityUpdateInterval, TimeUnit.SECONDS);
+                       event.getJDA().getPresence().setActivity(act);
+                   }
+               } catch (Exception e) {
+                   if (modConfig.generalConfig.debugging) {
+                       BotController.LOGGER.info(e.getMessage());
+                   }
+               }
+           }, modConfig.botConfig.activityUpdateInterval, modConfig.botConfig.activityUpdateInterval, TimeUnit.SECONDS);
 
-        threadPool.scheduleAtFixedRate(() -> {
-            try {
-                if (event.getJDA().getStatus() == JDA.Status.CONNECTED && (modConfig.botConfig.channelTopic != null && !modConfig.botConfig.channelTopic.isEmpty())) {
-                    TextChannel channel = event.getJDA().getTextChannelById(modConfig.channelConfig.channelID);
-                    if (channel != null) {
-                        String topic = modConfig.botConfig.channelTopic
-                                .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
-                                .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount()))
-                                .replace("%uptime%", SystemUtils.secondsToTimestamp(minecraftHelper.getServerUptime()));
-                        channel.getManager().setTopic(topic).queue();
-                    }
-                }
-            } catch (Exception e) {
-                if (modConfig.generalConfig.debugging) {
-                    BotController.LOGGER.info(e.getMessage());
-                }
-            }
-        }, 6, 6, TimeUnit.MINUTES);
+           threadPool.scheduleAtFixedRate(() -> {
+               try {
+                   if (event.getJDA().getStatus() == JDA.Status.CONNECTED && (modConfig.botConfig.channelTopic != null && !modConfig.botConfig.channelTopic.isEmpty())) {
+                       TextChannel channel = event.getJDA().getTextChannelById(modConfig.channelConfig.channelID);
+                       if (channel != null) {
+                           String topic = modConfig.botConfig.channelTopic
+                                   .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
+                                   .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount()))
+                                   .replace("%uptime%", SystemUtils.secondsToTimestamp(minecraftHelper.getServerUptime()));
+                           channel.getManager().setTopic(topic).queue();
+                       }
+                   }
+               } catch (Exception e) {
+                   if (modConfig.generalConfig.debugging) {
+                       BotController.LOGGER.info(e.getMessage());
+                   }
+               }
+           }, 6, 6, TimeUnit.MINUTES);
+       }
     }
 
     public void shutdown() {

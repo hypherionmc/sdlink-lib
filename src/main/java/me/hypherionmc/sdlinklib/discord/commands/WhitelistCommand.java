@@ -2,6 +2,8 @@ package me.hypherionmc.sdlinklib.discord.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import me.hypherionmc.jqlite.data.SQLiteTable;
+import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
@@ -15,6 +17,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.List;
 
 import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
+import static me.hypherionmc.sdlinklib.discord.commands.UnLinkCommand.pattern;
 
 public class WhitelistCommand extends Command {
 
@@ -74,6 +77,32 @@ public class WhitelistCommand extends Command {
                                         } else {
                                             event.reply("Player " + player.getLeft() + " could not be whitelisted. Either they are already whitelisted, or an error occurred");
                                         }
+
+                                        if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(event.getMember())) {
+                                            UserTable userTable = new UserTable();
+                                            userTable.username = player.getLeft();
+                                            userTable.UUID = player.getRight();
+                                            userTable.discordID = event.getAuthor().getIdLong();
+
+                                            List<UserTable> userTables = userTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
+                                            if (userTables.isEmpty()) {
+                                                userTable.insert();
+                                            } else {
+                                                userTable.update();
+                                            }
+
+                                            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
+                                            nickName = nickName + " [MC: " + player.getLeft() + "]";
+
+                                            try {
+                                                event.getMember().modifyNickname(nickName).queue();
+                                            } catch (Exception e) {
+                                                if (modConfig.generalConfig.debugging) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
+
                                     }
                                 }
                             }
@@ -98,6 +127,30 @@ public class WhitelistCommand extends Command {
                                         event.reply("Player " + player.getLeft() + " has been removed from the whitelist");
                                     } else {
                                         event.reply("Player " + player.getLeft() + " could not be un-whitelisted. Either they are not whitelisted, or an error occurred");
+                                    }
+
+                                    if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(event.getMember())) {
+                                        UserTable userTable = new UserTable();
+                                        List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
+
+                                        if (tables.isEmpty()) {
+                                            event.reply("Your discord account does not appear to be linked to a minecraft account");
+                                        } else {
+                                            tables.forEach(SQLiteTable::delete);
+
+                                            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
+                                            if (pattern.matcher(nickName).matches()) {
+                                                nickName = pattern.matcher(nickName).replaceAll("");
+                                            }
+
+                                            try {
+                                                event.getMember().modifyNickname(nickName).queue();
+                                            } catch (Exception e) {
+                                                if (modConfig.generalConfig.debugging) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }

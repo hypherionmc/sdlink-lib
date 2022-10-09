@@ -1,26 +1,30 @@
-package me.hypherionmc.sdlinklib.discord.commands;
+package me.hypherionmc.sdlinklib.discord.slashcommands;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
 import java.util.List;
 
-public class HelpCommand extends Command {
+/**
+ * @author HypherionSA
+ * @date 09/10/2022
+ */
+public class HelpSlashCommand extends SlashCommand {
 
     private final BotController engine;
 
-    public HelpCommand(BotController engine) {
+    public HelpSlashCommand(BotController engine) {
         this.engine = engine;
         this.name = "help";
         this.help = "Bot commands and help";
     }
 
     @Override
-    protected void execute(CommandEvent event) {
-        List<Command> commands = engine.getCommandClient().getCommands();
+    protected void execute(SlashCommandEvent event) {
+        List<SlashCommand> commands = engine.getCommandClient().getSlashCommands();
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Bot commands");
@@ -28,6 +32,6 @@ public class HelpCommand extends Command {
 
         commands.forEach(cmd -> builder.addField(cmd.getName(), cmd.getHelp(), false));
         builder.setFooter("Requested by " + event.getMember().getEffectiveName());
-        event.reply(builder.build());
+        event.replyEmbeds(builder.build()).setEphemeral(true).queue();
     }
 }

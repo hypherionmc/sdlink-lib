@@ -52,4 +52,8 @@ public class PlayerUtils {
     public static UUID offlineNameToUUID(String offlineName) {
         return UUID.nameUUIDFromBytes(("OfflinePlayer:" + offlineName).getBytes(StandardCharsets.UTF_8));
     }
+
+    public static Pair<String, String> offlineUUID(String offlineName) {
+        return Pair.of(offlineName, UUID.nameUUIDFromBytes(("OfflinePlayer:" + offlineName).getBytes(StandardCharsets.UTF_8)).toString().replace("-", ""));
+    }
 }
