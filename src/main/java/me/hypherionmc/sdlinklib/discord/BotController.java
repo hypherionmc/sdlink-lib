@@ -269,6 +269,10 @@ public class BotController {
     }
 
     public void shutdownBot() {
+        this.shutdownBot(true);
+    }
+
+    public void shutdownBot(boolean forced) {
         if (jda != null) {
             OkHttpClient client = jda.getHttpClient();
             client.connectionPool().evictAll();
@@ -284,22 +288,28 @@ public class BotController {
             eventWebhookClient.close();
         }
 
-        // Workaround for Bot thread hanging after server shutdown
-        threadPool.schedule(() -> {
-            if (discordEventHandler != null) {
-                discordEventHandler.shutdown();
-            }
-            System.exit(1);
-        }, 10, TimeUnit.SECONDS);
+        if (forced) {
+            // Workaround for Bot thread hanging after server shutdown
+            threadPool.schedule(() -> {
+                if (discordEventHandler != null) {
+                    discordEventHandler.shutdown();
+                }
+                System.exit(1);
+            }, 10, TimeUnit.SECONDS);
+        }
     }
 
     public void sendToDiscord(String message, String username, String uuid, boolean isChat) {
+        sendToDiscord(message, username, uuid, "", isChat);
+    }
+
+    public void sendToDiscord(String message, String username, String uuid, String textureID, boolean isChat) {
         try {
             if (isBotReady()) {
                 if (modConfig.webhookConfig.enabled) {
-                    sendWebhookMessage(username, message, uuid, isChat);
+                    sendWebhookMessage(username, message, textureID.isEmpty() ? uuid : textureID, isChat);
                 } else {
-                    sendEmbedMessage(username, message, uuid, isChat);
+                    sendEmbedMessage(username, message, textureID.isEmpty() ? uuid : textureID, isChat);
                 }
             }
         } catch (Exception e) {

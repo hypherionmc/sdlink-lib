@@ -12,7 +12,7 @@ import java.io.File;
 public class ConfigController {
 
     private final File configPath;
-    public static int configVer = 14;
+    public static int configVer = 15;
 
     public static ModConfig modConfig;
 

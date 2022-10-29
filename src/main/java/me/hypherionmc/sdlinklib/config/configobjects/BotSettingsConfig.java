@@ -29,6 +29,10 @@ public class BotSettingsConfig {
     @SpecComment("Do not add Playing. A status to display on the bot. You can use %players% and %maxplayers% to show the number of players on the server")
     public String botStatus = "Minecraft";
 
+    @Path("doTopicUpdates")
+    @SpecComment("Should the bot update the topic of your chat channel automatically")
+    public boolean doTopicUpdates = true;
+
     @Path("channelTopic")
     @SpecComment("A topic for the Chat Relay channel. You can use %player%, %maxplayers%, %uptime% or just leave it empty.")
     public String channelTopic = "Playing Minecraft with %players%/%maxplayers% people | Uptime: %uptime%";
