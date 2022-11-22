@@ -84,7 +84,7 @@ public class BotController {
 
             if (!modConfig.webhookConfig.eventsWebhook.isEmpty()) {
                 LOGGER.info("Events Channel Webhooks will be enabled");
-                eventWebhookClient = chatWebhookClient = new SDWebhookClient(modConfig.webhookConfig.eventsWebhook).build();
+                eventWebhookClient = new SDWebhookClient(modConfig.webhookConfig.eventsWebhook).build();
             }
         }
     }

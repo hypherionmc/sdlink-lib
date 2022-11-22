@@ -90,12 +90,12 @@ shadowJar {
 
         if (!project.oshi_hack) {
             exclude(dependency('net.java.dev.jna:.*'))
+            exclude 'org/slf4j/**'
         }
 
         exclude 'META-INF/versions/9/**'
         exclude 'module-info.class'
         exclude 'org/apache/commons/lang3/**'
-        exclude 'org/slf4j/**'
 
         relocate 'org.apache.commons.collections4', 'hypshadow.apache.commons.collections4'
         relocate 'javax.annotation', 'hypshadow.javax.annotation'
