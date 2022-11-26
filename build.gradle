@@ -100,7 +100,7 @@ shadowJar {
         relocate 'org.apache.commons.collections4', 'hypshadow.apache.commons.collections4'
         relocate 'javax.annotation', 'hypshadow.javax.annotation'
         relocate 'gnu.trove', 'hypshadow.gnu.trove'
-        relocate 'com.fasterxml.jackson', 'hypshadow.fasterxml.jackson'
+        relocate 'com.fasterxml', 'hypshadow.fasterxml'
         relocate 'club.minnced', 'hypshadow.club.minnced'
         relocate 'com.iwebpp', 'hypshadow.iwebpp'
         relocate 'com.jagrosh', 'hypshadow.jagrosh'

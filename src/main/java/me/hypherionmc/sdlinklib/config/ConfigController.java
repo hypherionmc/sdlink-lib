@@ -12,7 +12,7 @@ import java.io.File;
 public class ConfigController {
 
     private final File configPath;
-    public static int configVer = 15;
+    public static int configVer = 16;
 
     public static ModConfig modConfig;
 
@@ -56,7 +56,7 @@ public class ConfigController {
         if (oldConfig.contains("general.configVersion") && oldConfig.getInt("general.configVersion") < 11) {
             configPath.renameTo(new File(configPath.getAbsolutePath().replace(".toml", ".old")));
             saveConfig(new ModConfig());
-            BotController.LOGGER.info("Your config file cannot be auto-upgraded. The old one has been backed up and a new one created. Please re-configure the mods");
+            BotController.LOGGER.info("Your config file cannot be auto-upgraded. The old one has been backed up and a new one created. Please re-configure the mod");
         } else {
             if (!oldConfig.contains("general.configVersion") || oldConfig.getInt("general.configVersion") != configVer) {
 

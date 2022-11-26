@@ -347,7 +347,7 @@ public class BotController {
             WebhookEmbed web = WebhookEmbedBuilder.fromJDA(eb.build()).build();
             builder.addEmbeds(web);
         } else {
-            builder.setContent(isChat ? message : "*" + message + "*");
+            builder.setContent(message);
         }
 
         if (isChat) {
@@ -383,7 +383,7 @@ public class BotController {
                 if (username.equalsIgnoreCase("server")) {
                     username = modConfig.webhookConfig.serverName;
                 }
-                channel.sendMessage(isChat ? "**" + username + "**: " + message : "*" + message + "*").complete();
+                channel.sendMessage(isChat ? username + ": " + message : message).complete();
             }
         }
     }
@@ -406,7 +406,7 @@ public class BotController {
                     null,
                     avatarUrl.isEmpty() ? null : avatarUrl);
         }
-        builder.setDescription(isChat ? message : "*" + message + "*");
+        builder.setDescription(message);
         return builder;
     }
 

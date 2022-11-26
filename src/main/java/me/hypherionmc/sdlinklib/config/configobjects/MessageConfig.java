@@ -7,31 +7,31 @@ public class MessageConfig {
 
     @Path("serverStarting")
     @SpecComment("Server Starting Message")
-    public String serverStarting = "Server is starting...";
+    public String serverStarting = "*Server is starting...*";
 
     @Path("serverStarted")
     @SpecComment("Server Started Message")
-    public String serverStarted = "Server has started. Enjoy!";
+    public String serverStarted = "*Server has started. Enjoy!*";
 
     @Path("serverStopping")
     @SpecComment("Server Stopping Message")
-    public String serverStopping = "Server is stopping...";
+    public String serverStopping = "*Server is stopping...*";
 
     @Path("serverStopped")
     @SpecComment("Server Stopped Message")
-    public String serverStopped = "Server has stopped...";
+    public String serverStopped = "*Server has stopped...*";
 
     @Path("playerJoined")
     @SpecComment("Player Joined Message. Use %player% to display the player name")
-    public String playerJoined = "%player% has joined the server!";
+    public String playerJoined = "*%player% has joined the server!*";
 
     @Path("playerLeft")
     @SpecComment("Player Left Message. Use %player% to display the player name")
-    public String playerLeft = "%player% has left the server!";
+    public String playerLeft = "*%player% has left the server!*";
 
     @Path("achievements")
     @SpecComment("Achievement Messages. Available variables: %player%, %title%, %description%")
-    public String achievements = "%player% has made the advancement [%title%]: %description%";
+    public String achievements = "*%player% has made the advancement [%title%]: %description%*";
 
     @Path("chat")
     @SpecComment("Chat Messages. Available variables: %player%, %message%")
