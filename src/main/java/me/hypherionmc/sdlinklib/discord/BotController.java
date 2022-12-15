@@ -59,7 +59,7 @@ public class BotController {
     private final IMinecraftHelper minecraftHelper;
     private DiscordEventHandler discordEventHandler;
 
-    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=738543616&scope=bot%20applications.commands";
+    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=2886028304&scope=bot%20applications.commands";
 
     // Thread Manager
     public static final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
