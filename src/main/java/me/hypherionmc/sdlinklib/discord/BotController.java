@@ -457,7 +457,7 @@ public class BotController {
     }
 
     public void sendConsoleMessage(String username, String message) {
-        if (isBotReady()) {
+        if (isBotReady() && modConfig.messageConfig.sendConsoleMessages) {
             TextChannel channel = jda.getTextChannelById(modConfig.channelConfig.consoleChannelID);
             if (channel != null) {
                 channel.sendMessage(message).queue();

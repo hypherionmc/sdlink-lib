@@ -9,6 +9,10 @@ public class MessageConfig {
     @SpecComment("Convert Discord to MC, and MC to Discord Formatting")
     public boolean formatting = true;
 
+    @Path("sendConsoleMessages")
+    @SpecComment("Should console messages be sent to the Console Channel")
+    public boolean sendConsoleMessages = true;
+
     @Path("serverStarting")
     @SpecComment("Server Starting Message")
     public String serverStarting = "*Server is starting...*";

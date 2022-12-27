@@ -47,12 +47,12 @@ public class MCSlashCommand extends SlashCommand {
                             .findFirst();
 
                     if (role.isPresent()) {
-                        executeCommand(command, args);
+                        executeCommand(event, command, args);
                     } else {
                         event.reply("You need the " + command.discordRole + " role to perform this action").setEphemeral(true).queue();
                     }
                 } else {
-                    executeCommand(command, args);
+                    executeCommand(event, command, args);
                 }
             });
 
@@ -65,8 +65,9 @@ public class MCSlashCommand extends SlashCommand {
         }
     }
 
-    private void executeCommand(LinkedCommandsConfig.Command mcCommand, String args) {
+    private void executeCommand(SlashCommandEvent event, LinkedCommandsConfig.Command mcCommand, String args) {
         engine.getMinecraftHelper().executeMcCommand(mcCommand.mcCommand, args);
+        event.reply("Command sent to Discord").setEphemeral(true).queue();
     }
 
 }
