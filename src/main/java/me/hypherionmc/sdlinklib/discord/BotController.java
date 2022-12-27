@@ -94,7 +94,7 @@ public class BotController {
      * @return True or False
      */
     public boolean isBotReady() {
-        return modConfig != null && modConfig.generalConfig.enabled && jda != null && jda.getStatus() == JDA.Status.CONNECTED;
+        return modConfig != null && modConfig.generalConfig.enabled && jda != null && jda.getStatus() == JDA.Status.CONNECTED && jda.getStatus() != JDA.Status.SHUTTING_DOWN;
     }
 
     public void initializeBot() {
