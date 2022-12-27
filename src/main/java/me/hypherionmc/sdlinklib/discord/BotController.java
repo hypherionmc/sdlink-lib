@@ -162,6 +162,9 @@ public class BotController {
                         Member bot = guild.getMemberById(jda.getSelfUser().getIdLong());
                         EnumSet<Permission> botPerms = bot.getPermissionsExplicit();
 
+                        if (botPerms.contains(Permission.ADMINISTRATOR))
+                            return;
+
                         if (!botPerms.contains(Permission.NICKNAME_CHANGE)) {
                             errCount.incrementAndGet();
                             builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Change Nickname").append("\r\n");
@@ -215,7 +218,7 @@ public class BotController {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Embed Links").append("\r\n");
                                 }
-                                if (!chatPerms.contains(Permission.MANAGE_CHANNEL)) {
+                                if (modConfig.botConfig.doTopicUpdates && !chatPerms.contains(Permission.MANAGE_CHANNEL)) {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Manage Channel. Topic updates will not work").append("\r\n");
                                 }
@@ -243,7 +246,7 @@ public class BotController {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Send Messages").append("\r\n");
                                 }
-                                if (!eventPerms.contains(Permission.MANAGE_CHANNEL)) {
+                                if (modConfig.botConfig.doTopicUpdates && !eventPerms.contains(Permission.MANAGE_CHANNEL)) {
                                     errCount.incrementAndGet();
                                     builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Manage Channel. Topic updates will not work").append("\r\n");
                                 }
