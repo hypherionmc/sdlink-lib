@@ -37,6 +37,10 @@ public class CommandManager {
         commands.put(new UnLinkCommand(botController), new LinkSlashCommand.RemoveLinkSlashCommand(botController));
         commands.put(new LinkedCommand(), new LinkedAccountsSlashCommand());
         commands.put(new HelpCommand(botController), new HelpSlashCommand(botController));
+
+        if (modConfig.linkedCommands.enabled) {
+            commands.put(new MCCommand(botController), new MCSlashCommand(botController));
+        }
     }
 
     public void register(CommandClient commandClient) {

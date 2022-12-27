@@ -252,6 +252,26 @@ public class BotController {
                                 }
                             }
                         }
+
+                        if (modConfig.channelConfig.consoleChannelID != 0) {
+                            GuildChannel eventChannel = guild.getGuildChannelById(modConfig.channelConfig.consoleChannelID);
+
+                            if (eventChannel == null) {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("consoleChannelID does not point to a valid Discord Text Channel. Please double check this").append("\r\n");
+                            } else {
+                                EnumSet<Permission> eventPerms = bot.getPermissionsExplicit(eventChannel);
+
+                                if (!eventPerms.contains(Permission.VIEW_CHANNEL)) {
+                                    errCount.incrementAndGet();
+                                    builder.append(errCount.get()).append(") ").append("Missing Console Channel Permission: View Channel").append("\r\n");
+                                }
+                                if (!eventPerms.contains(Permission.MESSAGE_SEND)) {
+                                    errCount.incrementAndGet();
+                                    builder.append(errCount.get()).append(") ").append("Missing Console Channel Permission: Send Messages").append("\r\n");
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -433,6 +453,15 @@ public class BotController {
             return !tableList.isEmpty();
         } else {
             return true;
+        }
+    }
+
+    public void sendConsoleMessage(String username, String message) {
+        if (isBotReady()) {
+            TextChannel channel = jda.getTextChannelById(modConfig.channelConfig.consoleChannelID);
+            if (channel != null) {
+                channel.sendMessage(message).queue();
+            }
         }
     }
 

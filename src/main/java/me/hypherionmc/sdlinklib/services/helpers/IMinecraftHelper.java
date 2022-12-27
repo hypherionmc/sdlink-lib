@@ -31,4 +31,6 @@ public interface IMinecraftHelper {
 
     public String getServerVersion();
 
+    public void executeMcCommand(String command, String args);
+
 }

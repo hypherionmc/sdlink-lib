@@ -34,4 +34,8 @@ public class ModConfig {
     @SpecComment("Change in which channel messages appear")
     public MessageChannelsConfig messageDestinations = new MessageChannelsConfig();
 
+    @Path("linkedCommands")
+    @SpecComment("Execute Minecraft commands in Discord")
+    public LinkedCommandsConfig linkedCommands = new LinkedCommandsConfig();
+
 }
