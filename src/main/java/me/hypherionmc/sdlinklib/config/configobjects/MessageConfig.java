@@ -5,6 +5,10 @@ import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 
 public class MessageConfig {
 
+    @Path("formatting")
+    @SpecComment("Convert Discord to MC, and MC to Discord Formatting")
+    public boolean formatting = true;
+
     @Path("serverStarting")
     @SpecComment("Server Starting Message")
     public String serverStarting = "*Server is starting...*";
