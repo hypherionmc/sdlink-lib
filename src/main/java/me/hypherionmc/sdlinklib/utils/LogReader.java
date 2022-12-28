@@ -29,6 +29,7 @@ public class LogReader extends AbstractAppender {
     public static String logs = "";
     private long time;
     private Thread messageScheduler;
+    private static boolean isDevEnv = false;
 
     protected LogReader(String name, Filter filter) {
         super(name, filter, null, true, Property.EMPTY_ARRAY);
@@ -41,8 +42,9 @@ public class LogReader extends AbstractAppender {
         return new LogReader(name, filter);
     }
 
-    public static void init(BotController botController) {
+    public static void init(BotController botController, boolean isDev) {
         botEngine = botController;
+        isDevEnv = isDev;
         LogReader da = LogReader.createAppender("SDLinkLogging", null);
         ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addAppender(da);
         da.start();
@@ -59,10 +61,16 @@ public class LogReader extends AbstractAppender {
     }
 
     private String formatMessage(LogEvent event) {
-        return "**[" + formatTime(event.getTimeMillis()) + "]** " +
+        String devString = "**[" + formatTime(event.getTimeMillis()) + "]** " +
                 "**[" + event.getThreadName() + "/" + event.getLevel().name() + "]** " +
                 "**(" + event.getLoggerName().substring(event.getLoggerName().lastIndexOf(".") + 1) + ")** *" +
                 event.getMessage().getFormattedMessage() + "*";
+
+        String prodString = "**[" + formatTime(event.getTimeMillis()) + "]** " +
+                "**[" + event.getThreadName() + "/" + event.getLevel().name() + "]** *" +
+                event.getMessage().getFormattedMessage() + "*";
+
+        return isDevEnv ? devString : prodString;
     }
 
     private String formatTime(long millis) {
