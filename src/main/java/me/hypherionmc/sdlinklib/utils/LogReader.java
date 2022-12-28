@@ -79,6 +79,10 @@ public class LogReader extends AbstractAppender {
                     if (!botEngine.isBotReady())
                         return;
                     if (System.currentTimeMillis() - time > 250) {
+                        if (logs.length() > 2000) {
+                            logs = logs.substring(0, 1999);
+                        }
+
                         botEngine.sendConsoleMessage("", logs);
                         logs = "";
                         break;
