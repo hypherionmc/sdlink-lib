@@ -9,8 +9,10 @@ ext {
     oshi_hack = project.properties['oshi_hack'] ?: false
 }
 
+def baseVersion = "${version_major}.${version_minor}.${version_patch}"
+
 group 'me.hypherionmc.sdlink'
-version = project.version + (oshi_hack ? "h" : "")
+version = baseVersion + (oshi_hack ? "h" : "")
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
