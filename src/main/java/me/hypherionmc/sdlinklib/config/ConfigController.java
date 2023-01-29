@@ -99,17 +99,17 @@ public class ConfigController {
                 ObjectConverter objectConverter = new ObjectConverter();
                 objectConverter.toConfig(new ModConfig(), newConfig);
 
-                newConfig.valueMap().forEach((key, value) -> {
+                oldConfig.valueMap().forEach((key, value) -> {
                     if (value instanceof CommentedConfig) {
                         CommentedConfig commentedConfig = (CommentedConfig) value;
-                        commentedConfig.valueMap().forEach((subkey, subValue) -> {
-                            if (oldConfig.contains(key + "." + subkey)) {
-                                newConfig.set(key + "." + subkey, oldConfig.get(key + "." + subkey));
+                        commentedConfig.valueMap().forEach((subKey, subValue) -> {
+                            if (newConfig.contains(key + "." + subKey)) {
+                                newConfig.set(key + "." + subKey, subValue);
                             }
                         });
                     } else {
-                        if (oldConfig.contains(key)) {
-                            newConfig.set(key, oldConfig.get(key));
+                        if (newConfig.contains(key)) {
+                            newConfig.set(key, value);
                         }
                     }
                 });

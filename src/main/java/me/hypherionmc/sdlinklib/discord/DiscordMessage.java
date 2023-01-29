@@ -104,14 +104,18 @@ public final class DiscordMessage {
     }
 
     public void sendMessage() {
-        if (destination.isConsole()) {
-            sendConsoleMessage();
-        } else {
-            if (modConfig.webhookConfig.enabled) {
-                sendWebhookMessage();
+        try {
+            if (destination.isConsole()) {
+                sendConsoleMessage();
             } else {
-                sendStandardMessage();
+                if (modConfig.webhookConfig.enabled) {
+                    sendWebhookMessage();
+                } else {
+                    sendStandardMessage();
+                }
             }
+        } catch (Exception e) {
+            BotController.LOGGER.error("Failed to send Discord Message", e);
         }
     }
 
