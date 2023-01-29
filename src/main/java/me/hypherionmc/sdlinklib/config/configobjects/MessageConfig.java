@@ -68,6 +68,14 @@ public class MessageConfig {
     @SpecComment("Chat Messages. Available variables: %player%, %message%")
     public String chat = "%message%";
 
+    @Path("commands")
+    @SpecComment("Command Messages. Available variables: %player%, %command%")
+    public String commands = "%player% **executed command: %command%**";
+
+    @Path("relayFullCommands")
+    @SpecComment("Should the entire command executed be relayed to discord, or only the name of the command")
+    public boolean relayFullCommands = false;
+
     @Path("inviteMessage")
     @SpecComment("The message to show when someone uses /discord command. You can use %inviteurl%")
     public String inviteMessage = "Hey, check out our discord server here -> %inviteurl%";

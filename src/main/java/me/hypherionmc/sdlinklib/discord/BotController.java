@@ -44,7 +44,8 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import org.slf4j.Logger;
+import okhttp3.OkHttpClient;
+import org.apache.logging.log4j.Logger;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -390,6 +391,37 @@ public final class BotController {
             return !tableList.isEmpty();
         } else {
             return true;
+        }
+    }
+
+    public void shutdownBot() {
+        this.shutdownBot(true);
+    }
+
+    public void shutdownBot(boolean forced) {
+        if (_jda != null) {
+            OkHttpClient client = _jda.getHttpClient();
+            client.connectionPool().evictAll();
+            client.dispatcher().cancelAll();
+            client.dispatcher().executorService().shutdownNow();
+            _jda.shutdownNow();
+            _jda.shutdown();
+        }
+        if (chatWebhookClient != null) {
+            chatWebhookClient.close();
+        }
+        if (eventWebhookClient != null) {
+            eventWebhookClient.close();
+        }
+
+        if (forced) {
+            // Workaround for Bot thread hanging after server shutdown
+            threadPool.schedule(() -> {
+                if (discordEventHandler != null) {
+                    discordEventHandler.shutdown();
+                }
+                System.exit(1);
+            }, 10, TimeUnit.SECONDS);
         }
     }
 

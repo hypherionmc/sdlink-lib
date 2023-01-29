@@ -154,9 +154,9 @@ public final class DiscordMessage {
 
         if (channel != null) {
             if ((destination.isChat() && modConfig.channelConfig.chatEmbeds) || (destination.isServer() && modConfig.channelConfig.eventEmbeds)) {
-                channel.sendMessageEmbeds(builder.build()).complete();
+                channel.sendMessageEmbeds(builder.build()).queue();
             } else {
-                channel.sendMessage(message).complete();
+                channel.sendMessage(message).queue();
             }
         }
     }
