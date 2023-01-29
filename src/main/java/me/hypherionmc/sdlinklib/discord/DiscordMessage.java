@@ -167,9 +167,14 @@ public final class DiscordMessage {
 
     private EmbedBuilder getEmbed(boolean withAuthor) {
         String user = this.messageAuthor.getUsername();
+        String finalMsg = message;
 
         if (destination.isChat() && modConfig.messageConfig.chat.contains("%player%")) {
             user = MessageAuthor.SERVER.getUsername();
+        }
+
+        if (destination.isChat() && !modConfig.messageConfig.chat.contains("%player%")) {
+            finalMsg = message.replace(messageAuthor.getUsername() + ": ", "");
         }
 
         EmbedBuilder builder = new EmbedBuilder();
@@ -182,7 +187,7 @@ public final class DiscordMessage {
             );
         }
 
-        builder.setDescription(message);
+        builder.setDescription(finalMsg);
         return builder;
     }
 
