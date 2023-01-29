@@ -1,21 +1,20 @@
 package me.hypherionmc.sdlinklib.discord.commands;
 
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.database.UserTable;
+import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 
 import java.util.List;
 
-public class LinkedCommand extends Command {
+public class LinkedCommand extends BaseCommand {
 
     private UserTable table = new UserTable();
 
-    public LinkedCommand() {
+    public LinkedCommand(BotController controller) {
+        super(controller, true);
         this.name = "linkedacc";
         this.help = "View a list of linked Discord and MC accounts";
-        this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
     }
 
     @Override

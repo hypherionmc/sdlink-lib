@@ -64,8 +64,4 @@ public class ChatSettingsConfig {
     @SpecComment("Commands that should not be broadcasted to discord")
     public List<String> ignoredCommands = new ArrayList<String>() {{ add("particle"); add("login"); }};
 
-    @Path("sendTellRaw")
-    @SpecComment("Should Tell Raw messages be posted")
-    public boolean sendTellRaw = true;
-
 }

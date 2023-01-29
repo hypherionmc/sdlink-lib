@@ -5,9 +5,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.jqlite.data.SQLiteTable;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
-import me.hypherionmc.sdlinklib.utils.PlayerUtils;
 import net.dv8tion.jda.api.Permission;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -30,38 +28,26 @@ public class UnLinkCommand extends Command {
     @Override
     protected void execute(CommandEvent event) {
         userTable = new UserTable();
+        List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
 
-        if (event.getArgs().isEmpty()) {
-            event.reply("You need to supply your Minecraft username");
+        if (tables.isEmpty()) {
+            event.reply("Your discord account does not appear to be linked to a minecraft account");
         } else {
-            String[] args = event.getArgs().split(" ");
-            Pair<String, String> player = PlayerUtils.fetchUUID(args[0]);
-            if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
-                event.reply("Failed to fetch info for player " + args[0]);
-            } else {
-                userTable = new UserTable();
-                List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
+            tables.forEach(SQLiteTable::delete);
 
-                if (tables.isEmpty()) {
-                    event.reply("Your discord account does not appear to be linked to a minecraft account");
-                } else {
-                    tables.forEach(SQLiteTable::delete);
+            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
+            if (pattern.matcher(nickName).matches()) {
+                nickName = pattern.matcher(nickName).replaceAll("");
+            }
 
-                    String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
-                    if (pattern.matcher(nickName).matches()) {
-                        nickName = pattern.matcher(nickName).replaceAll("");
-                    }
-
-                    try {
-                        event.getMember().modifyNickname(nickName).queue();
-                    } catch (Exception e) {
-                        if (modConfig.generalConfig.debugging) {
-                            e.printStackTrace();
-                        }
-                    }
-                    event.reply("Your discord and MC account have been unlinked");
+            try {
+                event.getMember().modifyNickname(nickName).queue();
+            } catch (Exception e) {
+                if (modConfig.generalConfig.debugging) {
+                    e.printStackTrace();
                 }
             }
+            event.reply("Your discord and MC account have been unlinked");
         }
     }
 }

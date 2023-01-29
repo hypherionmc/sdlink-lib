@@ -1,5 +1,6 @@
 package me.hypherionmc.sdlinklib.utils;
 
+import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 
@@ -68,7 +69,10 @@ public class SystemUtils {
         return String.format("00 hour(s), %02d minute(s), %02d second(s)", minutes, seconds);
     }
 
-    public static boolean hasPermission(Member member) {
+    public static boolean hasPermission(BotController controller, Member member) {
+        if (!controller.getAdminRole().isEmpty()) {
+            return member.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase(controller.getAdminRole()));
+        }
         return member.hasPermission(Permission.ADMINISTRATOR) || member.hasPermission(Permission.KICK_MEMBERS);
     }
 }

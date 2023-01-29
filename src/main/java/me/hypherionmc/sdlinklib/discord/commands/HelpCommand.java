@@ -8,11 +8,12 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import java.awt.*;
 import java.util.List;
 
-public class HelpCommand extends Command {
+public class HelpCommand extends BaseCommand {
 
     private final BotController engine;
 
     public HelpCommand(BotController engine) {
+        super(engine, false);
         this.engine = engine;
         this.name = "help";
         this.help = "Bot commands and help";

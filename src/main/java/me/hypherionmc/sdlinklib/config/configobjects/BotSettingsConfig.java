@@ -17,6 +17,10 @@ public class BotSettingsConfig {
     @SpecComment("How quickly the bot status should update")
     public int activityUpdateInterval = 30;
 
+    @Path("staffRole")
+    @SpecComment("If defined, only this role can use Staff Functions. Otherwise, it defaults back to admin/kick perms")
+    public String staffRole;
+
     @Path("slashCommands")
     @SpecComment("Should the bot use / commands. NOTE: THIS MAY TAKE UP TO 24 HOURS TO SHOW UP IN YOUR DISCORD")
     public boolean slashCommands = false;

@@ -7,13 +7,12 @@ import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
-import me.hypherionmc.sdlinklib.utils.PlayerUtils;
+import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,23 +44,24 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
         }
     }
 
-
     @Override
     protected void execute(SlashCommandEvent event) {}
 
     public static class AddWhitelistSlashCommand extends SlashCommand {
 
+        private final BotController controller;
         private WhitelistTable whitelistTable = new WhitelistTable();
         private final IMinecraftHelper minecraftHelper;
 
         public AddWhitelistSlashCommand(BotController controller) {
+            this.controller = controller;
             this.name = "add";
             this.help = "Add a player to the whitelist";
             this.guildOnly = true;
             this.minecraftHelper = controller.getMinecraftHelper();
 
             if (modConfig.generalConfig.adminWhitelistOnly) {
-                this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
+                this.userPermissions = new Permission[]{Permission.ADMINISTRATOR, Permission.KICK_MEMBERS};
             }
 
             this.options = Collections.singletonList(new OptionData(OptionType.STRING, "mcname", "Your minecraft username"));
@@ -70,70 +70,62 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
 
         @Override
         protected void execute(SlashCommandEvent event) {
-            if (modConfig.generalConfig.offlinewhitelist && minecraftHelper.isWhitelistingEnabled()) {
-                String mcName = event.getOption("mcname") != null ? event.getOption("mcname").getAsString() : "";
+            String mcName = event.getOption("mcname") != null ? event.getOption("mcname").getAsString() : "";
 
-                Pair<String, String> player = PlayerUtils.offlineUUID(mcName);
+            if (!modConfig.generalConfig.offlinewhitelist) {
+                event.reply("Offline Whitelisting is disabled").setEphemeral(true).queue();
+                return;
+            }
+            if (!minecraftHelper.isWhitelistingEnabled()) {
+                event.reply("Server Side whitelisting is disabled").setEphemeral(true).queue();
+                return;
+            }
+            if (modConfig.generalConfig.adminWhitelistOnly && !SystemUtils.hasPermission(controller, event.getMember())) {
+                event.reply("Sorry, only staff members can use this command").setEphemeral(true).queue();
+                return;
+            }
 
-                if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
-                    event.reply("Failed to fetch info for player " + mcName).setEphemeral(true).queue();
-                } else {
-                    if (minecraftHelper.isPlayerWhitelisted(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
-                        event.reply("Player " + player.getLeft() + " is already whitelisted on this server").setEphemeral(true).queue();
-                    } else {
-                        whitelistTable = new WhitelistTable();
-                        List<WhitelistTable> tables = whitelistTable.fetchAll("discordID = '" + event.getMember().getIdLong() + "'");
-                        if (!tables.isEmpty() && !SystemUtils.hasPermission(event.getMember())) {
-                            event.reply("You have already whitelisted a player on this server! Only one whitelist per player is allowed. Please ask an admin for assistance").setEphemeral(true).queue();
-                        } else {
-                            whitelistTable.username = player.getLeft();
-                            whitelistTable.UUID = player.getRight();
-                            whitelistTable.discordID = event.getMember().getIdLong();
-                            if (minecraftHelper.whitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight())) && whitelistTable.insert()) {
-                                event.reply("Player " + player.getLeft() + " is now whitelisted!").setEphemeral(true).queue();
-                            } else {
-                                event.reply("Player " + player.getLeft() + " could not be whitelisted. Either they are already whitelisted, or an error occurred").setEphemeral(true).queue();
-                            }
+            // Add Player To List
+            MinecraftPlayer player = MinecraftPlayer.offline(mcName);
 
-                            if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(event.getMember())) {
-                                UserTable userTable = new UserTable();
-                                userTable.username = player.getLeft();
-                                userTable.UUID = player.getRight();
-                                userTable.discordID = event.getMember().getIdLong();
+            if (minecraftHelper.isPlayerWhitelisted(player)) {
+                event.reply("Player " + player.getUsername() + " is already whitelisted on this server").setEphemeral(true).queue();
+                return;
+            }
 
-                                List<UserTable> userTables = userTable.fetchAll("discordID = '" + event.getMember().getIdLong() + "'");
-                                if (userTables.isEmpty()) {
-                                    userTable.insert();
-                                } else {
-                                    userTable.update();
-                                }
+            whitelistTable = new WhitelistTable();
+            List<WhitelistTable> tables = whitelistTable.fetchAll("discordID = '" + event.getUser().getIdLong() + "'");
 
-                                String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getMember().getEffectiveName() : event.getMember().getNickname();
-                                nickName = nickName + " [MC: " + player.getLeft() + "]";
+            if (!tables.isEmpty() && !SystemUtils.hasPermission(controller, event.getMember())) {
+                event.reply("You have already whitelisted a player on this server! Only one whitelist per player is allowed. Please ask a staff member for assistance").setEphemeral(true).queue();
+                return;
+            }
 
-                                try {
-                                    event.getMember().modifyNickname(nickName).queue();
-                                } catch (Exception e) {
-                                    if (modConfig.generalConfig.debugging) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                        }
-                    }
+            whitelistTable.username = player.getUsername();
+            whitelistTable.UUID = player.getUuid().toString();
+            whitelistTable.discordID = event.getUser().getIdLong();
+            if (minecraftHelper.whitelistPlayer(player) && whitelistTable.insert()) {
+                event.reply("Player " + mcName + " is now whitelisted!").setEphemeral(true).queue();
+
+                if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
+                    String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getUser().getName() : event.getMember().getNickname();
+                    nickName = nickName + " [MC: " + mcName + "]";
+                    player.linkAccount(nickName, event.getMember());
                 }
             } else {
-                event.reply("Whitelisting is not enabled, or it's disabled on your server").setEphemeral(true).queue();
+                event.reply("Player " + mcName + " could not be whitelisted. Either they are already whitelisted, or an error occurred").setEphemeral(true).queue();
             }
         }
     }
 
     public static class RemoveWhitelistSlashCommand extends SlashCommand {
 
+        private final BotController controller;
         private WhitelistTable whitelistTable = new WhitelistTable();
         private final IMinecraftHelper minecraftHelper;
 
         public RemoveWhitelistSlashCommand(BotController controller) {
+            this.controller = controller;
             this.name = "remove";
             this.help = "Remove a player from the whitelist";
             this.guildOnly = true;
@@ -149,66 +141,68 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
 
         @Override
         protected void execute(SlashCommandEvent event) {
-            whitelistTable = new WhitelistTable();
             String mcName = event.getOption("mcname") != null ? event.getOption("mcname").getAsString() : "";
-            whitelistTable.fetch("discordID = '" + event.getMember().getIdLong() + "'");
+            whitelistTable = new WhitelistTable();
+            whitelistTable.fetch("username = '" + mcName + "'");
 
-            if ((whitelistTable.username == null || !whitelistTable.username.equalsIgnoreCase(mcName)) && !SystemUtils.hasPermission(event.getMember())) {
+            if (whitelistTable.username == null) {
+                event.reply("Failed to find player " + mcName + " in the whitelist. Keep in mind, the bot can only un-whitelist players whitelisted through the bot").setEphemeral(true).queue();
+                return;
+            }
+
+            if (event.getUser().getIdLong() != whitelistTable.discordID && !SystemUtils.hasPermission(controller, event.getMember())) {
                 event.reply("Sorry, you cannot un-whitelist this player").setEphemeral(true).queue();
-            } else {
-                Pair<String, String> player = PlayerUtils.offlineUUID(mcName);
+                return;
+            }
 
-                if (player.getLeft().isEmpty() || player.getRight().isEmpty()) {
-                    event.reply("Failed to fetch info for player " + mcName).setEphemeral(true).queue();
-                } else if (!minecraftHelper.isPlayerWhitelisted(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
-                    event.reply("Player " + player.getLeft() + " is not whitelisted on this server").setEphemeral(true).queue();
-                } else {
-                    if (minecraftHelper.unWhitelistPlayer(player.getLeft(), PlayerUtils.mojangIdToUUID(player.getRight()))) {
-                        whitelistTable.delete();
-                        event.reply("Player " + player.getLeft() + " has been removed from the whitelist").setEphemeral(true).queue();
-                    } else {
-                        event.reply("Player " + player.getLeft() + " could not be un-whitelisted. Either they are not whitelisted, or an error occurred").setEphemeral(true).queue();
-                    }
+            MinecraftPlayer player = MinecraftPlayer.offline(mcName);
 
-                    if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(event.getMember())) {
-                        UserTable userTable = new UserTable();
-                        List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getMember().getIdLong() + "'");
+            if (!minecraftHelper.isPlayerWhitelisted(player)) {
+                event.reply("Player " + mcName + " is not whitelisted on this server").setEphemeral(true).queue();
+                return;
+            }
 
-                        if (tables.isEmpty()) {
-                            event.reply("Your discord account does not appear to be linked to a minecraft account");
-                        } else {
-                            tables.forEach(SQLiteTable::delete);
+            if (minecraftHelper.unWhitelistPlayer(player)) {
+                whitelistTable.delete();
+                event.reply("Player " + mcName + " has been removed from the whitelist").setEphemeral(true).queue();
 
-                            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getMember().getEffectiveName() : event.getMember().getNickname();
-                            if (pattern.matcher(nickName).matches()) {
-                                nickName = pattern.matcher(nickName).replaceAll("");
-                            }
+                if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
+                    UserTable userTable = new UserTable();
+                    List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getUser().getIdLong() + "'");
 
-                            try {
-                                event.getMember().modifyNickname(nickName).queue();
-                            } catch (Exception e) {
-                                if (modConfig.generalConfig.debugging) {
-                                    e.printStackTrace();
-                                }
+                    if (!tables.isEmpty()) {
+                        tables.forEach(SQLiteTable::delete);
+
+                        String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getUser().getName() : event.getMember().getNickname();
+                        if (pattern.matcher(nickName).matches()) {
+                            nickName = pattern.matcher(nickName).replaceAll("");
+                        }
+
+                        try {
+                            event.getMember().modifyNickname(nickName).queue();
+                        } catch (Exception e) {
+                            if (modConfig.generalConfig.debugging) {
+                                e.printStackTrace();
                             }
                         }
                     }
                 }
+            } else {
+                event.reply("Player " + mcName + " could not be un-whitelisted. Either they are not whitelisted, or an error occurred").setEphemeral(true).queue();
             }
         }
     }
 
-    public static class ListWhitelistSlashCommand extends SlashCommand {
+    public static class ListWhitelistSlashCommand extends BaseSlashCommand {
 
         private final IMinecraftHelper minecraftHelper;
 
         public ListWhitelistSlashCommand(BotController controller) {
+            super(controller, true);
             this.name = "list";
             this.help = "List all Whitelisted Players";
             this.guildOnly = true;
             this.minecraftHelper = controller.getMinecraftHelper();
-
-            this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
         }
 
 

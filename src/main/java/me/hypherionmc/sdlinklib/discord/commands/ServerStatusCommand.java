@@ -1,28 +1,25 @@
 package me.hypherionmc.sdlinklib.discord.commands;
 
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.HardwareAbstractionLayer;
 
-public class ServerStatusCommand extends Command {
+public class ServerStatusCommand extends BaseCommand {
 
     private final IMinecraftHelper minecraftHelper;
 
     public ServerStatusCommand(BotController controller) {
+        super(controller, true);
         this.minecraftHelper = controller.getMinecraftHelper();
 
         this.name = "status";
         this.help = "View information about your server";
         this.guildOnly = true;
-        this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
-        this.cooldown = 5;
     }
 
     @Override

@@ -1,10 +1,9 @@
 package me.hypherionmc.sdlinklib.discord.slashcommands;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import me.hypherionmc.sdlinklib.database.UserTable;
+import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 
 import java.util.List;
 
@@ -12,14 +11,14 @@ import java.util.List;
  * @author HypherionSA
  * @date 09/10/2022
  */
-public class LinkedAccountsSlashCommand extends SlashCommand {
+public class LinkedAccountsSlashCommand extends BaseSlashCommand {
 
     private UserTable table = new UserTable();
 
-    public LinkedAccountsSlashCommand() {
+    public LinkedAccountsSlashCommand(BotController controller) {
+        super(controller, true);
         this.name = "linkedacc";
         this.help = "View a list of linked Discord and MC accounts";
-        this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
         this.guildOnly = true;
     }
 

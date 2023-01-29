@@ -1,12 +1,10 @@
 package me.hypherionmc.sdlinklib.discord.slashcommands;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.HardwareAbstractionLayer;
@@ -15,17 +13,17 @@ import oshi.hardware.HardwareAbstractionLayer;
  * @author HypherionSA
  * @date 09/10/2022
  */
-public class ServerStatusSlashCommand extends SlashCommand {
+public class ServerStatusSlashCommand extends BaseSlashCommand {
 
     private final IMinecraftHelper minecraftHelper;
 
     public ServerStatusSlashCommand(BotController controller) {
+        super(controller, true);
         this.minecraftHelper = controller.getMinecraftHelper();
 
         this.name = "status";
         this.help = "View information about your server";
         this.guildOnly = true;
-        this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
     }
 
 

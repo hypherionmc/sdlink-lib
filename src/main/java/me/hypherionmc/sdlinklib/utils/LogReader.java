@@ -1,6 +1,9 @@
 package me.hypherionmc.sdlinklib.utils;
 
 import me.hypherionmc.sdlinklib.discord.BotController;
+import me.hypherionmc.sdlinklib.discord.DiscordMessage;
+import me.hypherionmc.sdlinklib.discord.messages.MessageAuthor;
+import me.hypherionmc.sdlinklib.discord.messages.MessageDestination;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -13,7 +16,6 @@ import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginElement;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
-import org.apache.logging.log4j.core.time.Instant;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,7 +34,7 @@ public class LogReader extends AbstractAppender {
     private static boolean isDevEnv = false;
 
     protected LogReader(String name, Filter filter) {
-        super(name, filter, null, true, Property.EMPTY_ARRAY);
+        super(name, filter, null, true, new Property[0]);
     }
 
     @PluginFactory
@@ -91,7 +93,8 @@ public class LogReader extends AbstractAppender {
                             logs = logs.substring(0, 1999);
                         }
 
-                        botEngine.sendConsoleMessage("", logs);
+                        DiscordMessage message = new DiscordMessage.Builder(botEngine, MessageDestination.CONSOLE).withMessage(logs).withAuthor(MessageAuthor.SERVER).build();
+                        message.sendMessage();
                         logs = "";
                         break;
                     }

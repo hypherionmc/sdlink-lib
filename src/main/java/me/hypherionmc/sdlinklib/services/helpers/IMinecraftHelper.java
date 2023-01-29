@@ -1,7 +1,8 @@
 package me.hypherionmc.sdlinklib.services.helpers;
 
+import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
+
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author HypherionSA
@@ -13,11 +14,11 @@ public interface IMinecraftHelper {
 
     public boolean isWhitelistingEnabled();
 
-    public boolean isPlayerWhitelisted(String name, UUID uuid);
+    public boolean isPlayerWhitelisted(MinecraftPlayer player);
 
-    public boolean whitelistPlayer(String name, UUID uuid);
+    public boolean whitelistPlayer(MinecraftPlayer player);
 
-    public boolean unWhitelistPlayer(String name, UUID uuid);
+    public boolean unWhitelistPlayer(MinecraftPlayer player);
 
     public List<String> getWhitelistedPlayers();
 

@@ -1,22 +1,8 @@
 package me.hypherionmc.sdlinklib.utils;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 public class PlayerUtils {
 
-    public static Pair<String, String> fetchUUID(String name) {
+    /*public static Pair<String, String> fetchUUID(String name) {
         try {
             BufferedReader read = new BufferedReader(new InputStreamReader(new URL("https://api.mojang.com/users/profiles/minecraft/" + name).openStream()));
             JSONObject obj = new JSONObject(new JSONTokener(read));
@@ -55,5 +41,5 @@ public class PlayerUtils {
 
     public static Pair<String, String> offlineUUID(String offlineName) {
         return Pair.of(offlineName, UUID.nameUUIDFromBytes(("OfflinePlayer:" + offlineName).getBytes(StandardCharsets.UTF_8)).toString().replace("-", ""));
-    }
+    }*/
 }

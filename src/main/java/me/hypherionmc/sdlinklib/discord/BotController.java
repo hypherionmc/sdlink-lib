@@ -1,32 +1,27 @@
 package me.hypherionmc.sdlinklib.discord;
 
 import club.minnced.discord.webhook.WebhookClient;
-import club.minnced.discord.webhook.WebhookClientBuilder;
-import club.minnced.discord.webhook.send.WebhookEmbed;
-import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
-import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import me.hypherionmc.jqlite.DatabaseEngine;
 import me.hypherionmc.sdlinklib.config.ConfigController;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
-import me.hypherionmc.sdlinklib.discord.commands.*;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SDWebhookClient;
 import me.hypherionmc.sdlinklib.utils.ThreadedEventManager;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import okhttp3.OkHttpClient;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -37,37 +32,37 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
-/**
- * @author HypherionSA
- * @date 30/07/2022
- */
-public class BotController {
+public final class BotController {
+
+    // Required Variables
+    private JDA _jda;
+    public static Logger LOGGER;
 
     // Common Variables
-    private JDA jda;
     private CommandClient commandClient;
     private WebhookClient chatWebhookClient, eventWebhookClient;
-    public static Logger LOGGER;
+    private String adminRole = "";
 
     // Database
     private final DatabaseEngine databaseEngine = new DatabaseEngine("sdlink-whitelist");
     private WhitelistTable whitelistTable = new WhitelistTable();
     private UserTable userTable = new UserTable();
 
-    // Mod Specific
+    // Mod Specific Variables
     private final ConfigController configController;
     private final IMinecraftHelper minecraftHelper;
     private DiscordEventHandler discordEventHandler;
 
-    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=2886028304&scope=bot%20applications.commands";
-
     // Thread Manager
     public static final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+
+    // Invite URL for bot shown in server logs
+    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=2886028304&scope=bot%20applications.commands";
 
     public BotController(IMinecraftHelper minecraftHelper, Logger logger) {
         LOGGER = logger;
 
-        // Initialize Config and set Minecraft helper class
+        // Initialize Config and set Minecraft Helper Class
         configController = new ConfigController("./config");
         this.minecraftHelper = minecraftHelper;
 
@@ -78,120 +73,155 @@ public class BotController {
         // Initialize Webhook Clients
         if (modConfig.webhookConfig.enabled) {
             if (!modConfig.webhookConfig.chatWebhook.isEmpty()) {
-                LOGGER.info("Chat Channel Webhooks will be enabled");
                 chatWebhookClient = new SDWebhookClient(modConfig.webhookConfig.chatWebhook).build();
+                LOGGER.info("Using Webhook for Chat Messages");
             }
 
             if (!modConfig.webhookConfig.eventsWebhook.isEmpty()) {
-                LOGGER.info("Events Channel Webhooks will be enabled");
                 eventWebhookClient = new SDWebhookClient(modConfig.webhookConfig.eventsWebhook).build();
+                LOGGER.info("Using Webhook for Event Messages");
             }
         }
     }
 
     /**
-     * Check if the bot is connected and ready to work
-     * @return True or False
+     * Check if the Bot is ready to send and receive messages
+     * @return true or false
      */
     public boolean isBotReady() {
-        return modConfig != null && modConfig.generalConfig.enabled && jda != null && jda.getStatus() == JDA.Status.CONNECTED && jda.getStatus() != JDA.Status.SHUTTING_DOWN;
+        if (modConfig == null)
+            return false;
+
+        if (!modConfig.generalConfig.enabled)
+            return false;
+
+        if (_jda == null)
+            return false;
+
+        if (_jda.getStatus() == JDA.Status.SHUTTING_DOWN || _jda.getStatus() == JDA.Status.SHUTDOWN)
+            return false;
+
+        return _jda.getStatus() == JDA.Status.CONNECTED;
     }
 
+    /**
+     * Attempt to open a connection to discord and bring the bot online.
+     * Must be called from mod, AFTER the server is initializing
+     */
     public void initializeBot() {
+        // Check if the Config is loaded and Bot Token is specified
         if (modConfig == null || modConfig.botConfig.botToken.isEmpty()) {
-            LOGGER.info("Could not initialize bot. Could not load config or your Bot Token is missing. Bot will be disabled");
-        } else {
-            try {
-                if (modConfig.generalConfig.enabled) {
-                    // Setup the discord API
-                    jda = JDABuilder.createLight(
-                            modConfig.botConfig.botToken,
-                            GatewayIntent.GUILD_MEMBERS,
-                            GatewayIntent.GUILD_MESSAGES,
-                            GatewayIntent.MESSAGE_CONTENT
-                    )
-                    .setMemberCachePolicy(MemberCachePolicy.ALL)
-                    .setChunkingFilter(ChunkingFilter.ALL)
-                    .setBulkDeleteSplittingEnabled(true)
-                    .setEventManager(new ThreadedEventManager())
-                    .build();
-
-                    CommandClientBuilder clientBuilder = new CommandClientBuilder();
-                    clientBuilder.setOwnerId("354707828298088459");
-                    clientBuilder.setPrefix(modConfig.botConfig.botPrefix);
-                    clientBuilder.setHelpWord("help");
-                    clientBuilder.useHelpBuilder(false);
-
-                    discordEventHandler = new DiscordEventHandler(this);
-                    CommandManager commandManager = new CommandManager(this);
-
-                    commandClient = clientBuilder.build();
-                    commandManager.register(commandClient);
-
-                    jda.addEventListener(commandClient, discordEventHandler);
-                    jda.setAutoReconnect(true);
-                }
-            } catch (Exception e) {
-                if (modConfig.generalConfig.debugging) {
-                    e.printStackTrace();
-                    LOGGER.info("Failed to connect to discord. Error: {}", e.getMessage());
-                }
-            }
+            LOGGER.error("Could not initialize bot. Could not load config or your Bot Token is missing. Bot will be disabled");
+            return;
         }
+
+        try {
+            // Only attempt to connect if mod is enabled
+            if (modConfig.generalConfig.enabled) {
+                // Setup the Discord API
+                _jda = JDABuilder.createLight(
+                    modConfig.botConfig.botToken,
+                    GatewayIntent.GUILD_MEMBERS,
+                    GatewayIntent.GUILD_MESSAGES,
+                    GatewayIntent.MESSAGE_CONTENT
+                )
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .setChunkingFilter(ChunkingFilter.ALL)
+                .setBulkDeleteSplittingEnabled(true)
+                .setEventManager(new ThreadedEventManager())
+                .build();
+
+                // Setup Commands
+                CommandClientBuilder clientBuilder = new CommandClientBuilder();
+                clientBuilder.setOwnerId("354707828298088459");
+                clientBuilder.setPrefix(modConfig.botConfig.botPrefix);
+                clientBuilder.setHelpWord("help");
+                clientBuilder.useHelpBuilder(false);
+
+                discordEventHandler = new DiscordEventHandler(this);
+                CommandManager commandManager = new CommandManager(this);
+
+                commandClient = clientBuilder.build();
+                commandManager.register(commandClient);
+
+                // Register Event Handlers
+                _jda.addEventListener(commandClient, discordEventHandler);
+                _jda.setAutoReconnect(true);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to connect to discord", e);
+        }
+
         threadPool.schedule(this::checkBotSetup, 5, TimeUnit.SECONDS);
     }
 
+    /**
+     * INTERNAL
+     * Check that the bot has all the required permissions and channels it needs
+     */
     private void checkBotSetup() {
         StringBuilder builder = new StringBuilder();
         builder.append("\r\n").append("******************* Simple Discord Link Errors *******************").append("\r\n");
         AtomicInteger errCount = new AtomicInteger();
 
         if (isBotReady()) {
-            LOGGER.info("Discord Invite Link for Bot: {}", DISCORD_INVITE.replace("{bot_id}", jda.getSelfUser().getId()));
-            if (jda.getGuilds().isEmpty()) {
+            LOGGER.info("Discord Invite Link for Bot: {}", DISCORD_INVITE.replace("{bot_id}", _jda.getSelfUser().getId()));
+
+            if (_jda.getGuilds().isEmpty()) {
                 errCount.incrementAndGet();
-                builder.append(errCount.get()).append(") ").append("Bot does not appear to be in any servers. You need to invite the bot to your discord server before chat relays will work. Use link ").append(DISCORD_INVITE.replace("{bot_id}", jda.getSelfUser().getId())).append(" to invite the bot.").append("\r\n");
+                builder.append(errCount.get()).append(") ").append("Bot does not appear to be in any servers. You need to invite the bot to your discord server before chat relays will work. Use link ").append(DISCORD_INVITE.replace("{bot_id}", _jda.getSelfUser().getId())).append(" to invite the bot.").append("\r\n");
             } else {
-                if (jda.getGuilds().size() > 1) {
+                if (_jda.getGuilds().size() > 1) {
                     errCount.incrementAndGet();
                     builder.append(errCount.get()).append(") ").append("Bot appears to be in multiple discord servers. This mod is only designed to work with a single discord server").append("\r\n");
                 } else {
-                    Guild guild = jda.getGuilds().get(0);
+                    Guild guild = _jda.getGuilds().get(0);
 
                     if (guild != null) {
-                        Member bot = guild.getMemberById(jda.getSelfUser().getIdLong());
+                        Member bot = guild.getMemberById(_jda.getSelfUser().getIdLong());
                         EnumSet<Permission> botPerms = bot.getPermissionsExplicit();
 
-                        if (botPerms.contains(Permission.ADMINISTRATOR))
-                            return;
+                        // Find staff roles, and add them to list
+                        if (!modConfig.botConfig.staffRole.isEmpty()) {
+                            List<Role> roles = guild.getRolesByName(modConfig.botConfig.staffRole, true);
 
-                        if (!botPerms.contains(Permission.NICKNAME_CHANGE)) {
-                            errCount.incrementAndGet();
-                            builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Change Nickname").append("\r\n");
+                            if (!roles.isEmpty()) {
+                                adminRole = modConfig.botConfig.staffRole;
+                            } else {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("Missing Staff Role. Role :").append(modConfig.botConfig.staffRole).append(" cannot be found in the server").append("\r\n");
+                            }
                         }
-                        if (!botPerms.contains(Permission.NICKNAME_MANAGE)) {
-                            errCount.incrementAndGet();
-                            builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Manage Nicknames").append("\r\n");
-                        }
-                        if (!botPerms.contains(Permission.MANAGE_WEBHOOKS)) {
-                            errCount.incrementAndGet();
-                            builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Manage Webhooks").append("\r\n");
-                        }
-                        if (!botPerms.contains(Permission.MESSAGE_SEND)) {
-                            errCount.incrementAndGet();
-                            builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Send Messages").append("\r\n");
-                        }
-                        if (!botPerms.contains(Permission.MESSAGE_EMBED_LINKS)) {
-                            errCount.incrementAndGet();
-                            builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Embed Links").append("\r\n");
-                        }
-                        if (!botPerms.contains(Permission.MESSAGE_HISTORY)) {
-                            errCount.incrementAndGet();
-                            builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Read Message History").append("\r\n");
-                        }
-                        if (!botPerms.contains(Permission.MESSAGE_EXT_EMOJI)) {
-                            errCount.incrementAndGet();
-                            builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Use External Emojis").append("\r\n");
+
+                        if (!botPerms.contains(Permission.ADMINISTRATOR)) {
+                            if (!botPerms.contains(Permission.NICKNAME_CHANGE)) {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Change Nickname").append("\r\n");
+                            }
+                            if (!botPerms.contains(Permission.NICKNAME_MANAGE)) {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Manage Nicknames").append("\r\n");
+                            }
+                            if (!botPerms.contains(Permission.MANAGE_WEBHOOKS)) {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Manage Webhooks").append("\r\n");
+                            }
+                            if (!botPerms.contains(Permission.MESSAGE_SEND)) {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Send Messages").append("\r\n");
+                            }
+                            if (!botPerms.contains(Permission.MESSAGE_EMBED_LINKS)) {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Embed Links").append("\r\n");
+                            }
+                            if (!botPerms.contains(Permission.MESSAGE_HISTORY)) {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Read Message History").append("\r\n");
+                            }
+                            if (!botPerms.contains(Permission.MESSAGE_EXT_EMOJI)) {
+                                errCount.incrementAndGet();
+                                builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Use External Emojis").append("\r\n");
+                            }
                         }
 
                         if (modConfig.channelConfig.channelID == 0) {
@@ -206,21 +236,23 @@ public class BotController {
                             } else {
                                 EnumSet<Permission> chatPerms = bot.getPermissionsExplicit(chatChannel);
 
-                                if (!chatPerms.contains(Permission.VIEW_CHANNEL)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: View Channel").append("\r\n");
-                                }
-                                if (!chatPerms.contains(Permission.MESSAGE_SEND)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Send Messages").append("\r\n");
-                                }
-                                if (!chatPerms.contains(Permission.MESSAGE_EMBED_LINKS)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Embed Links").append("\r\n");
-                                }
-                                if (modConfig.botConfig.doTopicUpdates && !chatPerms.contains(Permission.MANAGE_CHANNEL)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Manage Channel. Topic updates will not work").append("\r\n");
+                                if (!chatPerms.contains(Permission.ADMINISTRATOR)) {
+                                   if (!chatPerms.contains(Permission.VIEW_CHANNEL)) {
+                                       errCount.incrementAndGet();
+                                       builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: View Channel").append("\r\n");
+                                   }
+                                   if (!chatPerms.contains(Permission.MESSAGE_SEND)) {
+                                       errCount.incrementAndGet();
+                                       builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Send Messages").append("\r\n");
+                                   }
+                                   if (!chatPerms.contains(Permission.MESSAGE_EMBED_LINKS)) {
+                                       errCount.incrementAndGet();
+                                       builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Embed Links").append("\r\n");
+                                   }
+                                   if (modConfig.botConfig.doTopicUpdates && !chatPerms.contains(Permission.MANAGE_CHANNEL)) {
+                                       errCount.incrementAndGet();
+                                       builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Manage Channel. Topic updates will not work").append("\r\n");
+                                   }
                                 }
                             }
                         }
@@ -234,21 +266,23 @@ public class BotController {
                             } else {
                                 EnumSet<Permission> eventPerms = bot.getPermissionsExplicit(eventChannel);
 
-                                if (!eventPerms.contains(Permission.VIEW_CHANNEL)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: View Channel").append("\r\n");
-                                }
-                                if (!eventPerms.contains(Permission.MESSAGE_EMBED_LINKS)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Embed Links").append("\r\n");
-                                }
-                                if (!eventPerms.contains(Permission.MESSAGE_SEND)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Send Messages").append("\r\n");
-                                }
-                                if (modConfig.botConfig.doTopicUpdates && !eventPerms.contains(Permission.MANAGE_CHANNEL)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Manage Channel. Topic updates will not work").append("\r\n");
+                                if (!eventPerms.contains(Permission.ADMINISTRATOR)) {
+                                    if (!eventPerms.contains(Permission.VIEW_CHANNEL)) {
+                                        errCount.incrementAndGet();
+                                        builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: View Channel").append("\r\n");
+                                    }
+                                    if (!eventPerms.contains(Permission.MESSAGE_EMBED_LINKS)) {
+                                        errCount.incrementAndGet();
+                                        builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Embed Links").append("\r\n");
+                                    }
+                                    if (!eventPerms.contains(Permission.MESSAGE_SEND)) {
+                                        errCount.incrementAndGet();
+                                        builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Send Messages").append("\r\n");
+                                    }
+                                    if (modConfig.botConfig.doTopicUpdates && !eventPerms.contains(Permission.MANAGE_CHANNEL)) {
+                                        errCount.incrementAndGet();
+                                        builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Manage Channel. Topic updates will not work").append("\r\n");
+                                    }
                                 }
                             }
                         }
@@ -262,13 +296,15 @@ public class BotController {
                             } else {
                                 EnumSet<Permission> eventPerms = bot.getPermissionsExplicit(eventChannel);
 
-                                if (!eventPerms.contains(Permission.VIEW_CHANNEL)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Console Channel Permission: View Channel").append("\r\n");
-                                }
-                                if (!eventPerms.contains(Permission.MESSAGE_SEND)) {
-                                    errCount.incrementAndGet();
-                                    builder.append(errCount.get()).append(") ").append("Missing Console Channel Permission: Send Messages").append("\r\n");
+                                if (!eventPerms.contains(Permission.ADMINISTRATOR)) {
+                                    if (!eventPerms.contains(Permission.VIEW_CHANNEL)) {
+                                        errCount.incrementAndGet();
+                                        builder.append(errCount.get()).append(") ").append("Missing Console Channel Permission: View Channel").append("\r\n");
+                                    }
+                                    if (!eventPerms.contains(Permission.MESSAGE_SEND)) {
+                                        errCount.incrementAndGet();
+                                        builder.append(errCount.get()).append(") ").append("Missing Console Channel Permission: Send Messages").append("\r\n");
+                                    }
                                 }
                             }
                         }
@@ -283,169 +319,43 @@ public class BotController {
         }
     }
 
+    /**
+     * Check if whitelisting can be used, and send a message to the console
+     */
     public void checkWhitelisting() {
-        if (modConfig.generalConfig.whitelisting) {
+        if (modConfig.generalConfig.whitelisting || modConfig.generalConfig.offlinewhitelist) {
             if (!minecraftHelper.isWhitelistingEnabled()) {
-                LOGGER.warn("Server-Side Whitelist is disabled. Whitelist commands will not work");
-            }
-        }
-    }
-
-    public void shutdownBot() {
-        this.shutdownBot(true);
-    }
-
-    public void shutdownBot(boolean forced) {
-        if (jda != null) {
-            OkHttpClient client = jda.getHttpClient();
-            client.connectionPool().evictAll();
-            client.dispatcher().cancelAll();
-            client.dispatcher().executorService().shutdownNow();
-            jda.shutdownNow();
-            jda.shutdown();
-        }
-        if (chatWebhookClient != null) {
-            chatWebhookClient.close();
-        }
-        if (eventWebhookClient != null) {
-            eventWebhookClient.close();
-        }
-
-        if (forced) {
-            // Workaround for Bot thread hanging after server shutdown
-            threadPool.schedule(() -> {
-                if (discordEventHandler != null) {
-                    discordEventHandler.shutdown();
-                }
-                System.exit(1);
-            }, 10, TimeUnit.SECONDS);
-        }
-    }
-
-    public void sendToDiscord(String message, String username, String uuid, boolean isChat) {
-        sendToDiscord(message, username, uuid, "", isChat);
-    }
-
-    public void sendToDiscord(String message, String username, String uuid, String textureID, boolean isChat) {
-        try {
-            if (isBotReady()) {
-                if (modConfig.webhookConfig.enabled) {
-                    sendWebhookMessage(username, message, textureID.isEmpty() ? uuid : textureID, isChat);
-                } else {
-                    sendEmbedMessage(username, message, textureID.isEmpty() ? uuid : textureID, isChat);
-                }
-            }
-        } catch (Exception e) {
-            if (modConfig != null && modConfig.generalConfig.debugging) {
-                LOGGER.info("Failed to send message: {}", e.getMessage());
-            }
-        }
-    }
-
-    private void sendWebhookMessage(String username, String message, String uuid, boolean isChat) {
-        String avatarUrl = modConfig.webhookConfig.serverAvatar;
-        message = message.replace("<@", "");
-
-        if (!uuid.isEmpty() && !username.equalsIgnoreCase("server")) {
-            avatarUrl = modConfig.chatConfig.playerAvatarType.getUrl().replace("{uuid}", uuid);
-        }
-
-        WebhookMessageBuilder builder = new WebhookMessageBuilder();
-
-        String user = modConfig.webhookConfig.serverName;
-
-        if (isChat && !modConfig.messageConfig.chat.contains("%player%")) {
-            user = username;
-        }
-
-        if (username.equalsIgnoreCase("server")) {
-            user = modConfig.webhookConfig.serverName;
-        }
-
-        builder.setUsername(user);
-        builder.setAvatarUrl(avatarUrl);
-
-        if ((isChat && modConfig.webhookConfig.chatEmbeds) || (!isChat && modConfig.webhookConfig.eventEmbeds)) {
-            EmbedBuilder eb = getEmbed(isChat, username, message, avatarUrl, false);
-            WebhookEmbed web = WebhookEmbedBuilder.fromJDA(eb.build()).build();
-            builder.addEmbeds(web);
-        } else {
-            builder.setContent(message);
-        }
-
-        if (isChat) {
-            if (chatWebhookClient != null) {
-                chatWebhookClient.send(builder.build());
-            }
-        } else {
-            if (eventWebhookClient != null) {
-                eventWebhookClient.send(builder.build());
+                LOGGER.error("Server Side Whitelist is disabled. Whitelist commands will not work!");
             } else {
-                chatWebhookClient.send(builder.build());
+                LOGGER.info("Whitelisting enabled and ready");
             }
         }
     }
 
-    private void sendEmbedMessage(String username, String message, String uuid, boolean isChat) {
-        String avatarUrl = modConfig.webhookConfig.serverAvatar;
-        message = message.replace("<@", "");
-
-        if (!uuid.isEmpty() && !username.equalsIgnoreCase("server")) {
-            avatarUrl = modConfig.chatConfig.playerAvatarType.getUrl().replace("{uuid}", uuid);
-        }
-
-        EmbedBuilder builder = getEmbed(isChat, username, message, avatarUrl, true);
-
-        TextChannel channel = jda.getTextChannelById(isChat ? modConfig.channelConfig.channelID : (modConfig.channelConfig.eventsID != 0 ? modConfig.channelConfig.eventsID : modConfig.channelConfig.channelID));
-        if (channel != null) {
-            if (isChat && modConfig.channelConfig.chatEmbeds) {
-                channel.sendMessageEmbeds(builder.build()).complete();
-            } else if (!isChat && modConfig.channelConfig.eventEmbeds) {
-                channel.sendMessageEmbeds(builder.build()).complete();
-            } else {
-                if (username.equalsIgnoreCase("server")) {
-                    username = modConfig.webhookConfig.serverName;
-                }
-                channel.sendMessage(isChat ? username + ": " + message : message).complete();
-            }
-        }
-    }
-
-    private EmbedBuilder getEmbed(boolean isChat, String username, String message, String avatarUrl, boolean withAuthor) {
-        String user = modConfig.webhookConfig.serverName;
-
-        if (isChat && !modConfig.messageConfig.chat.contains("%player%")) {
-            user = username;
-        }
-
-        if (username.equalsIgnoreCase("server")) {
-            user = modConfig.webhookConfig.serverName;
-        }
-
-        EmbedBuilder builder = new EmbedBuilder();
-        if (withAuthor) {
-            builder.setAuthor(
-                    user,
-                    null,
-                    avatarUrl.isEmpty() ? null : avatarUrl);
-        }
-        builder.setDescription(message);
-        return builder;
-    }
-
+    /**
+     * Get the Discord Name of a Minecraft player, if a linked account exists
+     * @param mcName The Minecraft Username of the player
+     * @return The linked name of the player, or an error
+     */
     public String getDiscordName(String mcName) {
         if (isBotReady()) {
             userTable = new UserTable();
             userTable.fetch("username = '" + mcName + "'");
 
-            if (userTable.discordID != 0 && jda.getUserById(userTable.discordID) != null) {
-                User discordUser = jda.getUserById(userTable.discordID);
+            if (userTable.discordID != 0 && _jda.getUserById(userTable.discordID) != null) {
+                User discordUser = _jda.getUserById(userTable.discordID);
                 return mcName + " is linked to discord account: " + discordUser.getName() + "#" + discordUser.getDiscriminator();
             }
         }
         return "Could not find result for " + mcName;
     }
 
+    /**
+     * Check if a player is whitelisted by the bot
+     * @param username The Minecraft Username of the Player
+     * @param uuid The UUID of the Minecraft Player
+     * @return True if whitelisted, false if not
+     */
     public boolean isPlayerWhitelisted(String username, String uuid) {
         if (modConfig.generalConfig.whitelisting) {
             whitelistTable = new WhitelistTable();
@@ -456,17 +366,12 @@ public class BotController {
         }
     }
 
-    public void sendConsoleMessage(String username, String message) {
-        if (isBotReady() && modConfig.messageConfig.sendConsoleMessages) {
-            TextChannel channel = jda.getTextChannelById(modConfig.channelConfig.consoleChannelID);
-            if (channel != null) {
-                channel.sendMessage(message).queue();
-            }
-        }
-    }
-
     public CommandClient getCommandClient() {
         return commandClient;
+    }
+
+    public ConfigController getConfigController() {
+        return configController;
     }
 
     public DatabaseEngine getDatabaseEngine() {
@@ -479,5 +384,21 @@ public class BotController {
 
     public IMinecraftHelper getMinecraftHelper() {
         return minecraftHelper;
+    }
+
+    WebhookClient getChatWebhookClient() {
+        return chatWebhookClient;
+    }
+
+    WebhookClient getEventWebhookClient() {
+        return eventWebhookClient;
+    }
+
+    public JDA get_jda() {
+        return _jda;
+    }
+
+    public String getAdminRole() {
+        return adminRole;
     }
 }
