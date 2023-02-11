@@ -57,4 +57,6 @@ public interface IMinecraftHelper {
 
     public void executeMcCommand(String command, String args);
 
+    public boolean isOnlineMode();
+
 }
