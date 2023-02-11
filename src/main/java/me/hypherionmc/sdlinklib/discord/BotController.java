@@ -89,7 +89,7 @@ public final class BotController {
     public static final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
     // Invite URL for bot shown in server logs
-    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=2886028304&scope=bot%20applications.commands";
+    private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=3154463760&scope=bot%20applications.commands";
 
     public BotController(IMinecraftHelper minecraftHelper, Logger logger) {
         LOGGER = logger;
