@@ -70,7 +70,7 @@ public class DiscordEventHandler extends ListenerAdapter {
             if (modConfig.generalConfig.debugging) {
                 BotController.LOGGER.info("Sending Message from {}: {}", event.getAuthor().getName(), event.getMessage().getContentStripped());
             }
-            minecraftHelper.discordMessageEvent(event.getAuthor().getName(), event.getMessage().getContentRaw());
+            minecraftHelper.discordMessageEvent(event.getMember().getEffectiveName(), event.getMessage().getContentRaw());
         } catch (Exception e) {
             if (modConfig.generalConfig.debugging) {
                 e.printStackTrace();
