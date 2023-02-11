@@ -27,13 +27,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.discord.slashcommands.ServerStatusSlashCommand;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
-import me.hypherionmc.sdlinklib.utils.SystemUtils;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import oshi.SystemInfo;
-import oshi.hardware.CentralProcessor;
-import oshi.hardware.HardwareAbstractionLayer;
 
 public class ServerStatusCommand extends BaseCommand {
 

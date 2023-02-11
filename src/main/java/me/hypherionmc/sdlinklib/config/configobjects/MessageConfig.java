@@ -72,6 +72,10 @@ public class MessageConfig {
     @SpecComment("Command Messages. Available variables: %player%, %command%")
     public String commands = "%player% **executed command: %command%**";
 
+    @Path("relayTellRaw")
+    @SpecComment("Should messages sent with TellRaw be sent to discord as a chat? (Experimental)")
+    public boolean relayTellRaw = true;
+
     @Path("relayFullCommands")
     @SpecComment("Should the entire command executed be relayed to discord, or only the name of the command")
     public boolean relayFullCommands = false;

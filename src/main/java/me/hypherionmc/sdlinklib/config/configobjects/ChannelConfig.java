@@ -44,11 +44,4 @@ public class ChannelConfig {
     @SpecComment("If this ID is set, console messages sent after the bot started will be relayed here, and you can execute minecraft commands here")
     public long consoleChannelID = 0;
 
-    @Path("chatEmbeds")
-    @SpecComment("Use EMBED style messages for chat channel messages")
-    public boolean chatEmbeds = false;
-
-    @Path("eventEmbeds")
-    @SpecComment("Use EMBED style messages for event channel messages")
-    public boolean eventEmbeds = false;
 }

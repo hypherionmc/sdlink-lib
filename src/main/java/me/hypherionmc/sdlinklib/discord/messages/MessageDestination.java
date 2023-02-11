@@ -25,15 +25,15 @@ package me.hypherionmc.sdlinklib.discord.messages;
 
 public enum MessageDestination {
     CHAT,
-    SERVER,
+    EVENT,
     CONSOLE;
 
     public boolean isChat() {
         return this == CHAT;
     }
 
-    public boolean isServer() {
-        return this == SERVER;
+    public boolean isEvent() {
+        return this == EVENT;
     }
 
     public boolean isConsole() {

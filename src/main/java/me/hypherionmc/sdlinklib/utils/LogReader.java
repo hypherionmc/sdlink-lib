@@ -26,7 +26,7 @@ package me.hypherionmc.sdlinklib.utils;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.discord.DiscordMessage;
 import me.hypherionmc.sdlinklib.discord.messages.MessageAuthor;
-import me.hypherionmc.sdlinklib.discord.messages.MessageDestination;
+import me.hypherionmc.sdlinklib.discord.messages.MessageType;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -116,8 +116,12 @@ public class LogReader extends AbstractAppender {
                             logs = logs.substring(0, 1999);
                         }
 
-                        DiscordMessage message = new DiscordMessage.Builder(botEngine, MessageDestination.CONSOLE).withMessage(logs).withAuthor(MessageAuthor.SERVER).build();
-                        message.sendMessage();
+                        DiscordMessage message = new DiscordMessage.Builder(botEngine, MessageType.CONSOLE).withMessage(logs).withAuthor(MessageAuthor.SERVER).build();
+
+                        if (modConfig.messageConfig.sendConsoleMessages) {
+                            message.sendMessage();
+                        }
+
                         logs = "";
                         break;
                     }

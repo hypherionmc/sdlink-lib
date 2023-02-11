@@ -23,13 +23,16 @@
  */
 package me.hypherionmc.sdlinklib.discord;
 
+import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
+import me.hypherionmc.sdlinklib.config.configobjects.MessageChannelsConfig;
 import me.hypherionmc.sdlinklib.discord.messages.MessageAuthor;
-import me.hypherionmc.sdlinklib.discord.messages.MessageDestination;
+import me.hypherionmc.sdlinklib.discord.messages.MessageType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
+import org.apache.commons.lang3.tuple.Pair;
 
 import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
@@ -41,13 +44,15 @@ public final class DiscordMessage {
 
     // Variables
     private final BotController controller;
-    private final MessageDestination destination;
+    //private final MessageDestination destination;
+    private final MessageType messageType;
+
     private final MessageAuthor messageAuthor;
     private final String message;
 
     private DiscordMessage(Builder builder) {
         controller = builder.controller;
-        destination = builder.destination;
+        messageType = builder.messageType;
         messageAuthor = builder.author;
         message = builder.message;
     }
@@ -59,15 +64,16 @@ public final class DiscordMessage {
 
         // Required Variables
         private final BotController controller;
-        private final MessageDestination destination;
+        //private final MessageDestination destination;
+        private final MessageType messageType;
 
         // Optional Variables
         private MessageAuthor author;
         private String message;
 
-        public Builder(BotController controller, MessageDestination destination) {
+        public Builder(BotController controller, MessageType messageType) {
             this.controller = controller;
-            this.destination = destination;
+            this.messageType = messageType;
         }
 
         public Builder withAuthor(MessageAuthor author) {
@@ -89,11 +95,13 @@ public final class DiscordMessage {
             if (this.message == null) {
                 this.message = "";
             } else {
-                if (destination.isChat()) {
+                if (messageType == MessageType.CHAT) {
                     if (modConfig.messageConfig.chat.contains("%player%")) {
                         message = modConfig.messageConfig.chat.replace("%player%", author.getUsername()).replace("%message%", message);
                     } else {
-                        message = author.getUsername() + ": " + message;
+                        if (!modConfig.webhookConfig.enabled || controller.getChatWebhookClient() == null) {
+                            message = author.getUsername() + ": " + message;
+                        }
                     }
                 }
             }
@@ -105,7 +113,7 @@ public final class DiscordMessage {
 
     public void sendMessage() {
         try {
-            if (destination.isConsole()) {
+            if (messageType == MessageType.CONSOLE) {
                 sendConsoleMessage();
             } else {
                 if (modConfig.webhookConfig.enabled) {
@@ -128,7 +136,12 @@ public final class DiscordMessage {
             builder.setAvatarUrl(this.messageAuthor.getAvatar());
         }
 
-        if ((destination.isChat() && modConfig.webhookConfig.chatEmbeds) || (destination.isServer() && modConfig.webhookConfig.eventEmbeds)) {
+        Pair<WebhookClient, Boolean> webhook = getDestinationWebhook();
+
+        if (webhook.getLeft() == null)
+            return;
+
+        if (webhook.getRight()) {
             EmbedBuilder eb = getEmbed(false);
             WebhookEmbed web = WebhookEmbedBuilder.fromJDA(eb.build()).build();
             builder.addEmbeds(web);
@@ -136,31 +149,19 @@ public final class DiscordMessage {
             builder.setContent(message);
         }
 
-        if (destination.isChat()) {
-            if (controller.getChatWebhookClient() != null) {
-                controller.getChatWebhookClient().send(builder.build());
-            }
-        } else {
-            if (controller.getEventWebhookClient() != null) {
-                controller.getEventWebhookClient().send(builder.build());
-            } else {
-                controller.getChatWebhookClient().send(builder.build());
-            }
-        }
+        webhook.getLeft().send(builder.build());
     }
 
     private void sendStandardMessage() {
         EmbedBuilder builder = getEmbed(true);
 
-        StandardGuildMessageChannel channel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class,
-                destination.isChat() ? modConfig.channelConfig.channelID : (modConfig.channelConfig.eventsID != 0 ? modConfig.channelConfig.eventsID : modConfig.channelConfig.channelID)
-        );
+        Pair<StandardGuildMessageChannel, Boolean> channel = getDestinationChannel();
 
-        if (channel != null) {
-            if ((destination.isChat() && modConfig.channelConfig.chatEmbeds) || (destination.isServer() && modConfig.channelConfig.eventEmbeds)) {
-                channel.sendMessageEmbeds(builder.build()).queue();
+        if (channel.getLeft() != null) {
+            if (channel.getRight()) {
+                channel.getLeft().sendMessageEmbeds(builder.build()).queue();
             } else {
-                channel.sendMessage(message).queue();
+                channel.getLeft().sendMessage(message).queue();
             }
         }
     }
@@ -169,11 +170,11 @@ public final class DiscordMessage {
         String user = this.messageAuthor.getUsername();
         String finalMsg = message;
 
-        if (destination.isChat() && modConfig.messageConfig.chat.contains("%player%")) {
+        if (messageType == MessageType.CHAT && modConfig.messageConfig.chat.contains("%player%")) {
             user = MessageAuthor.SERVER.getUsername();
         }
 
-        if (destination.isChat() && !modConfig.messageConfig.chat.contains("%player%")) {
+        if (messageType == MessageType.CHAT && !modConfig.messageConfig.chat.contains("%player%")) {
             finalMsg = message.replace(messageAuthor.getUsername() + ": ", "");
         }
 
@@ -192,12 +193,202 @@ public final class DiscordMessage {
     }
 
     private void sendConsoleMessage() {
-        if (controller.isBotReady() && modConfig.messageConfig.sendConsoleMessages) {
-            StandardGuildMessageChannel channel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.consoleChannelID);
-            if (channel != null) {
-                channel.sendMessage(message).queue();
+        try {
+            if (controller.isBotReady() && modConfig.messageConfig.sendConsoleMessages) {
+                StandardGuildMessageChannel channel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.consoleChannelID);
+                if (channel != null) {
+                    channel.sendMessage(message).queue();
+                }
+            }
+        } catch (Exception e) {
+            if (modConfig != null && modConfig.generalConfig.debugging) {
+                e.printStackTrace();
             }
         }
+    }
+
+    private Pair<StandardGuildMessageChannel, Boolean> getDestinationChannel() {
+        StandardGuildMessageChannel channel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.channelID);
+        StandardGuildMessageChannel eventChannel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.eventsID);
+        StandardGuildMessageChannel consoleChannel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.consoleChannelID);
+
+        if (messageType == MessageType.CHAT) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.chat;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.START_STOP) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.startStop;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.JOIN_LEAVE) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.joinLeave;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.ADVANCEMENT) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.advancements;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.DEATH) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.death;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.COMMAND) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.commands;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        return Pair.of(null, false);
+    }
+
+    private Pair<WebhookClient, Boolean> getDestinationWebhook() {
+        WebhookClient channel = controller.getChatWebhookClient();
+        WebhookClient eventChannel = controller.getEventWebhookClient();
+        WebhookClient consoleChannel = controller.getConsoleWebhookClient();
+
+        if (messageType == MessageType.CHAT) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.chat;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.START_STOP) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.startStop;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.JOIN_LEAVE) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.joinLeave;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.ADVANCEMENT) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.advancements;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.DEATH) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.death;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        if (messageType == MessageType.COMMAND) {
+            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.commands;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+            if (object.channel.isChat()) {
+                return Pair.of(channel, object.useEmbed);
+            }
+        }
+
+        return Pair.of(null, false);
     }
 
 }

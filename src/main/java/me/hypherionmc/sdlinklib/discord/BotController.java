@@ -68,7 +68,7 @@ public final class BotController {
 
     // Common Variables
     private CommandClient commandClient;
-    private WebhookClient chatWebhookClient, eventWebhookClient;
+    private WebhookClient chatWebhookClient, eventWebhookClient, consoleWebhookClient;
     private String adminRole = "";
 
     private Role whitelistedRole;
@@ -112,6 +112,11 @@ public final class BotController {
             if (!modConfig.webhookConfig.eventsWebhook.isEmpty()) {
                 eventWebhookClient = new SDWebhookClient(modConfig.webhookConfig.eventsWebhook).build();
                 LOGGER.info("Using Webhook for Event Messages");
+            }
+
+            if (!modConfig.webhookConfig.consoleWebhook.isEmpty()) {
+                consoleWebhookClient = new SDWebhookClient(modConfig.webhookConfig.consoleWebhook).build();
+                LOGGER.info("Using Webhook for Console Messages");
             }
         }
     }
@@ -433,6 +438,9 @@ public final class BotController {
         if (eventWebhookClient != null) {
             eventWebhookClient.close();
         }
+        if (consoleWebhookClient != null) {
+            consoleWebhookClient.close();
+        }
 
         if (forced) {
             // Workaround for Bot thread hanging after server shutdown
@@ -471,6 +479,10 @@ public final class BotController {
 
     WebhookClient getEventWebhookClient() {
         return eventWebhookClient;
+    }
+
+    WebhookClient getConsoleWebhookClient() {
+        return consoleWebhookClient;
     }
 
     public JDA get_jda() {
