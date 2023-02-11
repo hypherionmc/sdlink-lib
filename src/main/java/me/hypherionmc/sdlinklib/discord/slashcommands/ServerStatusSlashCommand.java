@@ -56,6 +56,7 @@ public class ServerStatusSlashCommand extends BaseSlashCommand {
     @Override
     protected void execute(SlashCommandEvent event) {
         runStatusCommand(minecraftHelper, event.getChannel(), null);
+        event.reply("Success").setEphemeral(true).queue();
     }
 
     public static void runStatusCommand(IMinecraftHelper minecraftHelper, MessageChannel channel, Message message) {

@@ -128,6 +128,7 @@ public class DiscordEventHandler extends ListenerAdapter {
     public void onButtonInteraction(ButtonInteractionEvent event) {
         if (event.getComponentId().equals("refreshbtn")) {
             ServerStatusSlashCommand.runStatusCommand(minecraftHelper, event.getChannel(), event.getMessage());
+            event.reply("Success").setEphemeral(true).queue();
         }
     }
 
