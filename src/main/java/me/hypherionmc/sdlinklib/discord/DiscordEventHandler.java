@@ -23,11 +23,13 @@
  */
 package me.hypherionmc.sdlinklib.discord;
 
+import me.hypherionmc.sdlinklib.discord.slashcommands.ServerStatusSlashCommand;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -120,6 +122,13 @@ public class DiscordEventHandler extends ListenerAdapter {
                }
            }, 6, 6, TimeUnit.MINUTES);
        }
+    }
+
+    @Override
+    public void onButtonInteraction(ButtonInteractionEvent event) {
+        if (event.getComponentId().equals("refreshbtn")) {
+            ServerStatusSlashCommand.runStatusCommand(minecraftHelper, event.getChannel(), event.getMessage());
+        }
     }
 
     public void shutdown() {

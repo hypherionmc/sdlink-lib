@@ -28,6 +28,10 @@ import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.HardwareAbstractionLayer;
@@ -52,6 +56,10 @@ public class ServerStatusSlashCommand extends BaseSlashCommand {
 
     @Override
     protected void execute(SlashCommandEvent event) {
+        runStatusCommand(minecraftHelper, event.getChannel(), null);
+    }
+
+    public static void runStatusCommand(IMinecraftHelper minecraftHelper, MessageChannel channel, Message message) {
         SystemInfo systemInfo = new SystemInfo();
         HardwareAbstractionLayer hal = systemInfo.getHardware();
         CentralProcessor cpu = hal.getProcessor();
@@ -116,6 +124,12 @@ public class ServerStatusSlashCommand extends BaseSlashCommand {
 
         builder.setDescription(stringBuilder.toString());
 
-        event.replyEmbeds(builder.build()).setEphemeral(true).queue();
+        Button refreshButton = Button.danger("refreshbtn", "Refresh");
+
+        if (message != null) {
+            message.editMessageEmbeds(builder.build()).queue();
+        } else {
+            channel.sendMessageEmbeds(builder.build()).addActionRow(refreshButton).queue();
+        }
     }
 }
