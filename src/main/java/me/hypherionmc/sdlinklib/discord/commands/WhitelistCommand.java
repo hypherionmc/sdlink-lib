@@ -33,6 +33,7 @@ import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
@@ -114,6 +115,10 @@ public class WhitelistCommand extends Command {
                 if (minecraftHelper.whitelistPlayer(player) && whitelistTable.insert()) {
                     event.reply("Player " + args[1] + " is now whitelisted!");
 
+                    if (controller.getWhitelistedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                        event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getWhitelistedRole()).queue();
+                    }
+
                     if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                         String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
                         nickName = nickName + " [MC: " + args[1] + "]";
@@ -156,6 +161,10 @@ public class WhitelistCommand extends Command {
                 if (minecraftHelper.unWhitelistPlayer(player)) {
                     whitelistTable.delete();
                     event.reply("Player " + args[1] + " has been removed from the whitelist");
+
+                    if (controller.getWhitelistedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                        event.getGuild().removeRoleFromMember(UserSnowflake.fromId(event.getMember().getId()), controller.getWhitelistedRole()).queue();
+                    }
 
                     if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                         UserTable userTable = new UserTable();

@@ -71,6 +71,10 @@ public final class BotController {
     private WebhookClient chatWebhookClient, eventWebhookClient;
     private String adminRole = "";
 
+    private Role whitelistedRole;
+
+    private Role linkedRole;
+
     // Database
     private final DatabaseEngine databaseEngine = new DatabaseEngine("sdlink-whitelist");
     private WhitelistTable whitelistTable = new WhitelistTable();
@@ -204,6 +208,22 @@ public final class BotController {
                     builder.append(errCount.get()).append(") ").append("Bot appears to be in multiple discord servers. This mod is only designed to work with a single discord server").append("\r\n");
                 } else {
                     Guild guild = _jda.getGuilds().get(0);
+
+                    if (!modConfig.generalConfig.autoWhitelistRole.isEmpty()) {
+                        List<Role> roles = guild.getRolesByName(modConfig.generalConfig.autoWhitelistRole, true);
+
+                        if (!roles.isEmpty()) {
+                            whitelistedRole = roles.get(0);
+                        }
+                    }
+
+                    if (!modConfig.generalConfig.linkedRole.isEmpty()) {
+                        List<Role> roles = guild.getRolesByName(modConfig.generalConfig.linkedRole, true);
+
+                        if (!roles.isEmpty()) {
+                            linkedRole = roles.get(0);
+                        }
+                    }
 
                     if (guild != null) {
                         Member bot = guild.getMemberById(_jda.getSelfUser().getIdLong());
@@ -455,6 +475,14 @@ public final class BotController {
 
     public JDA get_jda() {
         return _jda;
+    }
+
+    public Role getWhitelistedRole() {
+        return whitelistedRole;
+    }
+
+    public Role getLinkedRole() {
+        return linkedRole;
     }
 
     public String getAdminRole() {

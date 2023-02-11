@@ -53,6 +53,14 @@ public class GeneralConfig {
     @SpecComment("Should only admins be allowed to whitelist players")
     public boolean adminWhitelistOnly = false;
 
+    @Path("autoWhitelistRole")
+    @SpecComment("If a role name is defined here, it will be assigned to players when they are whitelisted");
+    public String autoWhitelistRole = "";
+
+    @Path("linkedRole")
+    @SpecComment("If a role name is defined here, it will be assigned to players when their MC and Discord accounts are linked");
+    public String linkedRole = "";
+
     @Path("inviteCommandEnabled")
     @SpecComment("Should the /discord command be enabled in game")
     public boolean inviteCommandEnabled = false;

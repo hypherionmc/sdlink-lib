@@ -28,7 +28,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.jqlite.data.SQLiteTable;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
+import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -40,8 +42,11 @@ public class UnLinkCommand extends Command {
     private UserTable userTable = new UserTable();
     public static final Pattern pattern = Pattern.compile("\\[MC: [a-zA-Z]+]\\s+", Pattern.CASE_INSENSITIVE);
 
+    private final BotController controller;
+
     public UnLinkCommand(BotController controller) {
         this.guildOnly = true;
+        this.controller = controller;
 
         this.name = "unlink";
         this.help = "Unlink your Minecraft and Discord account";
@@ -71,6 +76,10 @@ public class UnLinkCommand extends Command {
                 }
             }
             event.reply("Your discord and MC account have been unlinked");
+
+            if (controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                event.getGuild().removeRoleFromMember(UserSnowflake.fromId(event.getMember().getId()), controller.getLinkedRole()).queue();
+            }
         }
     }
 }

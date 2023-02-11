@@ -61,6 +61,10 @@ public class ModConfig {
     @SpecComment("Change in which channel messages appear")
     public MessageChannelsConfig messageDestinations = new MessageChannelsConfig();
 
+    @Path("botCommands")
+    @SpecComment("Enable or Disable certain bot commands")
+    public BotCommandsConfig botCommands = new BotCommandsConfig();
+
     @Path("linkedCommands")
     @SpecComment("Execute Minecraft commands in Discord")
     public LinkedCommandsConfig linkedCommands = new LinkedCommandsConfig();

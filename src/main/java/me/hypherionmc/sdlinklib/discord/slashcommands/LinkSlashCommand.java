@@ -30,7 +30,9 @@ import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
 import me.hypherionmc.sdlinklib.utils.Result;
+import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -78,6 +80,10 @@ public class LinkSlashCommand extends SlashCommand {
             nickName = nickName + " [MC: " + mcName + "]";
             Result result = player.linkAccount(nickName, event.getMember());
             event.reply(result.getMessage()).setEphemeral(true).queue();
+
+            if (controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getLinkedRole()).queue();
+            }
         }
     }
 
@@ -119,6 +125,10 @@ public class LinkSlashCommand extends SlashCommand {
                     }
                 }
                 event.reply("Your discord and MC account have been unlinked");
+
+                if (controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                    event.getGuild().removeRoleFromMember(UserSnowflake.fromId(event.getMember().getId()), controller.getLinkedRole()).queue();
+                }
             }
         }
     }

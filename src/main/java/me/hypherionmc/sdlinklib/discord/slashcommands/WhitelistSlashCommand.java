@@ -33,6 +33,7 @@ import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.apache.commons.lang3.ArrayUtils;
@@ -134,6 +135,10 @@ public class WhitelistSlashCommand extends SlashCommand {
             if (minecraftHelper.whitelistPlayer(player) && whitelistTable.insert()) {
                 event.reply("Player " + mcName + " is now whitelisted!").setEphemeral(true).queue();
 
+                if (controller.getWhitelistedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                    event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getWhitelistedRole()).queue();
+                }
+
                 if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                     String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getUser().getName() : event.getMember().getNickname();
                     nickName = nickName + " [MC: " + mcName + "]";
@@ -197,6 +202,10 @@ public class WhitelistSlashCommand extends SlashCommand {
             if (minecraftHelper.unWhitelistPlayer(player)) {
                 whitelistTable.delete();
                 event.reply("Player " + mcName + " has been removed from the whitelist").setEphemeral(true).queue();
+
+                if (controller.getWhitelistedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                    event.getGuild().removeRoleFromMember(UserSnowflake.fromId(event.getMember().getId()), controller.getWhitelistedRole()).queue();
+                }
 
                 if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                     UserTable userTable = new UserTable();

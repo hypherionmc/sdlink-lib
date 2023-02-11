@@ -26,16 +26,20 @@ package me.hypherionmc.sdlinklib.discord.commands;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
+import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 
 import java.util.List;
 
 public class LinkedCommand extends BaseCommand {
 
     private UserTable table = new UserTable();
+    private final BotController controller;
 
     public LinkedCommand(BotController controller) {
         super(controller, true);
+        this.controller = controller;
         this.name = "linkedacc";
         this.help = "View a list of linked Discord and MC accounts";
     }
@@ -58,5 +62,9 @@ public class LinkedCommand extends BaseCommand {
 
         builder.setDescription(content.toString());
         event.reply(builder.build());
+
+        if (controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+            event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getLinkedRole()).queue();
+        }
     }
 }

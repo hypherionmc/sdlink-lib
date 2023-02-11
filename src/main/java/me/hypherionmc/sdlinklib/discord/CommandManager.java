@@ -49,17 +49,28 @@ public class CommandManager {
     }
 
     private void addCommands() {
-        commands.put(new PlayerListCommand(botController), new PlayerListSlashCommand(botController));
-        commands.put(new ServerStatusCommand(botController), new ServerStatusSlashCommand(botController));
+        if (modConfig.botCommands.allowPlayerList) {
+            commands.put(new PlayerListCommand(botController), new PlayerListSlashCommand(botController));
+        }
+
+        if (modConfig.botCommands.allowServerStatus) {
+            commands.put(new ServerStatusCommand(botController), new ServerStatusSlashCommand(botController));
+        }
 
         if (modConfig.generalConfig.offlinewhitelist) {
             commands.put(new OfflineWhitelist(botController), new OfflineWhitelistSlashCommand(botController));
         }
 
-        commands.put(new WhitelistCommand(botController), new WhitelistSlashCommand(botController));
-        commands.put(new LinkCommand(botController), new LinkSlashCommand(botController));
-        commands.put(new UnLinkCommand(botController), new LinkSlashCommand.RemoveLinkSlashCommand(botController));
-        commands.put(new LinkedCommand(botController), new LinkedAccountsSlashCommand(botController));
+        if (modConfig.generalConfig.whitelisting) {
+            commands.put(new WhitelistCommand(botController), new WhitelistSlashCommand(botController));
+        }
+
+        if (modConfig.botCommands.accountLinking) {
+            commands.put(new LinkCommand(botController), new LinkSlashCommand(botController));
+            commands.put(new UnLinkCommand(botController), new LinkSlashCommand.RemoveLinkSlashCommand(botController));
+            commands.put(new LinkedCommand(botController), new LinkedAccountsSlashCommand(botController));
+        }
+
         commands.put(new HelpCommand(botController), new HelpSlashCommand(botController));
 
         if (modConfig.linkedCommands.enabled) {
