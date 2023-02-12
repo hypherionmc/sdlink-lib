@@ -78,6 +78,11 @@ public final class DiscordMessage {
 
         public Builder withAuthor(MessageAuthor author) {
             this.author = author;
+
+            if (author.getUsername().equalsIgnoreCase("server")) {
+                this.author = MessageAuthor.SERVER;
+            }
+
             return this;
         }
 
