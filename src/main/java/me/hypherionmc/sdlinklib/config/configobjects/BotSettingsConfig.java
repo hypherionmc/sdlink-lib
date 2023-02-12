@@ -25,6 +25,7 @@ package me.hypherionmc.sdlinklib.config.configobjects;
 
 import me.hypherionmc.moonconfig.core.conversion.Path;
 import me.hypherionmc.moonconfig.core.conversion.SpecComment;
+import net.dv8tion.jda.api.entities.Activity.ActivityType;
 
 /**
  * @author HypherionSA
@@ -55,6 +56,10 @@ public class BotSettingsConfig {
     @Path("botStatus")
     @SpecComment("Do not add Playing. A status to display on the bot. You can use %players% and %maxplayers% to show the number of players on the server")
     public String botStatus = "Minecraft";
+
+    @Path("botStatusType")
+    @SpecComment("The type of the status displayed on the bot. Valid entries are: PLAYING, STREAMING, WATCHING, LISTENING")
+    public ActivityType botStatusType = ActivityType.PLAYING;
 
     @Path("doTopicUpdates")
     @SpecComment("Should the bot update the topic of your chat channel automatically")

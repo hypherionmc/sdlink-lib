@@ -88,7 +88,7 @@ public class DiscordEventHandler extends ListenerAdapter {
            threadPool.scheduleAtFixedRate(() -> {
                try {
                    if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
-                       Activity act = Activity.of(Activity.ActivityType.PLAYING, modConfig.botConfig.botStatus
+                       Activity act = Activity.of(modConfig.botConfig.botStatusType, modConfig.botConfig.botStatus
                                .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
                                .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())));
 
