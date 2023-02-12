@@ -40,7 +40,7 @@ public class ConfigController {
 
     // Private Variables used internally
     private final File configPath;
-    public static int configVer = 22;
+    public static int configVer = 23;
 
     // Instance of loaded config
     public static ModConfig modConfig;

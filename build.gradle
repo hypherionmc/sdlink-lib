@@ -94,6 +94,8 @@ shadowJar {
         if (!project.oshi_hack) {
             exclude(dependency('net.java.dev.jna:.*'))
             exclude 'org/slf4j/**'
+        } else {
+            include(dependency("ch.qos.logback:logback-classic:1.2.8"))
         }
 
         exclude 'META-INF/versions/9/**'
