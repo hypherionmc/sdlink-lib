@@ -58,6 +58,9 @@ dependencies {
     shade "me.hypherionmc.moon-config:core:${moonconf_ver}"
     shade "me.hypherionmc.moon-config:toml:${moonconf_ver}"
     shade("me.hypherionmc:JQLite:${jqlite_ver}") { exclude(group: 'org.apache.commons') }
+
+    // Only shaded on 1.16.5
+    shade('ch.qos.logback:logback-classic:1.2.8')
 }
 
 jar {
@@ -93,9 +96,9 @@ shadowJar {
 
         if (!project.oshi_hack) {
             exclude(dependency('net.java.dev.jna:.*'))
+            exclude(dependency('ch.qos.logback:logback-classic:.*'))
             exclude 'org/slf4j/**'
-        } else {
-            include(dependency('ch.qos.logback:logback-classic:1.2.8'))
+            exclude 'ch/qos/**'
         }
 
         exclude 'META-INF/versions/9/**'
