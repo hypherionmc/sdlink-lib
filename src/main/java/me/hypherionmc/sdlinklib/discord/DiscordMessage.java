@@ -221,9 +221,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.START_STOP) {
@@ -235,9 +234,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.JOIN_LEAVE) {
@@ -249,9 +247,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.ADVANCEMENT) {
@@ -263,9 +260,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.DEATH) {
@@ -277,9 +273,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.COMMAND) {
@@ -291,9 +286,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         return Pair.of(null, false);
@@ -313,9 +307,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.START_STOP) {
@@ -327,9 +320,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.JOIN_LEAVE) {
@@ -341,9 +333,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.ADVANCEMENT) {
@@ -355,9 +346,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.DEATH) {
@@ -369,9 +359,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         if (messageType == MessageType.COMMAND) {
@@ -383,9 +372,8 @@ public final class DiscordMessage {
             if (object.channel.isConsole() && consoleChannel != null) {
                 return Pair.of(consoleChannel, object.useEmbed);
             }
-            if (object.channel.isChat()) {
-                return Pair.of(channel, object.useEmbed);
-            }
+
+            return Pair.of(channel, object.useEmbed);
         }
 
         return Pair.of(null, false);
