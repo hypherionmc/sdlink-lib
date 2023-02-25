@@ -47,12 +47,15 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import okhttp3.OkHttpClient;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
@@ -69,7 +72,7 @@ public final class BotController {
     // Common Variables
     private CommandClient commandClient;
     private WebhookClient chatWebhookClient, eventWebhookClient, consoleWebhookClient;
-    private String adminRole = "";
+    private Role adminRole;
 
     private Role whitelistedRole;
 
@@ -90,6 +93,8 @@ public final class BotController {
 
     // Invite URL for bot shown in server logs
     private final String DISCORD_INVITE = "https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=3154463760&scope=bot%20applications.commands";
+
+    private final Pattern ID_MATCHER = Pattern.compile("[0-9]+", Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
 
     public BotController(IMinecraftHelper minecraftHelper, Logger logger) {
         LOGGER = logger;
@@ -214,35 +219,63 @@ public final class BotController {
                 } else {
                     Guild guild = _jda.getGuilds().get(0);
 
-                    if (!modConfig.generalConfig.autoWhitelistRole.isEmpty()) {
-                        List<Role> roles = guild.getRolesByName(modConfig.generalConfig.autoWhitelistRole, true);
-
-                        if (!roles.isEmpty()) {
-                            whitelistedRole = roles.get(0);
-                        }
-                    }
-
-                    if (!modConfig.generalConfig.linkedRole.isEmpty()) {
-                        List<Role> roles = guild.getRolesByName(modConfig.generalConfig.linkedRole, true);
-
-                        if (!roles.isEmpty()) {
-                            linkedRole = roles.get(0);
-                        }
-                    }
-
                     if (guild != null) {
                         Member bot = guild.getMemberById(_jda.getSelfUser().getIdLong());
                         EnumSet<Permission> botPerms = bot.getPermissionsExplicit();
 
                         // Find staff roles, and add them to list
                         if (!modConfig.botConfig.staffRole.isEmpty()) {
-                            List<Role> roles = guild.getRolesByName(modConfig.botConfig.staffRole, true);
+                            List<Role> roles = new ArrayList<>();
+
+                            if (ID_MATCHER.matcher(modConfig.botConfig.staffRole).matches()) {
+                                Role staffRole = guild.getRoleById(modConfig.botConfig.staffRole);
+                                if (staffRole != null) {
+                                    roles = Collections.singletonList(staffRole);
+                                }
+                            } else {
+                                roles = guild.getRolesByName(modConfig.botConfig.staffRole, true);
+                            }
 
                             if (!roles.isEmpty()) {
-                                adminRole = modConfig.botConfig.staffRole;
+                                adminRole = roles.get(0);
                             } else {
                                 errCount.incrementAndGet();
                                 builder.append(errCount.get()).append(") ").append("Missing Staff Role. Role :").append(modConfig.botConfig.staffRole).append(" cannot be found in the server").append("\r\n");
+                            }
+                        }
+
+                        // Find additional roles
+                        if (!modConfig.generalConfig.autoWhitelistRole.isEmpty()) {
+                            List<Role> roles = new ArrayList<>();
+
+                            if (ID_MATCHER.matcher(modConfig.generalConfig.autoWhitelistRole).matches()) {
+                                Role whitelistRole = guild.getRoleById(modConfig.generalConfig.autoWhitelistRole);
+                                if (whitelistRole != null) {
+                                    roles = Collections.singletonList(whitelistRole);
+                                }
+                            } else {
+                                roles = guild.getRolesByName(modConfig.generalConfig.autoWhitelistRole, true);
+                            }
+
+                            if (!roles.isEmpty()) {
+                                whitelistedRole = roles.get(0);
+                            }
+                        }
+
+                        if (!modConfig.generalConfig.linkedRole.isEmpty()) {
+                            List<Role> roles = new ArrayList<>();
+
+                            if (ID_MATCHER.matcher(modConfig.generalConfig.linkedRole).matches()) {
+                                Role linkedRole = guild.getRoleById(modConfig.generalConfig.linkedRole);
+                                if (linkedRole != null) {
+                                    roles = Collections.singletonList(linkedRole);
+                                }
+                            } else {
+                                roles = guild.getRolesByName(modConfig.generalConfig.linkedRole, true);
+                            }
+
+                            if (!roles.isEmpty()) {
+                                linkedRole = roles.get(0);
                             }
                         }
 
@@ -497,7 +530,7 @@ public final class BotController {
         return linkedRole;
     }
 
-    public String getAdminRole() {
+    public Role getAdminRole() {
         return adminRole;
     }
 }

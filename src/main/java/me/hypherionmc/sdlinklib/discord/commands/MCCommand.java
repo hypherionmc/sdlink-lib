@@ -76,7 +76,7 @@ public class MCCommand extends Command {
             linkedCommand.ifPresent(command -> {
                 if (!command.discordRole.isEmpty()) {
                     Optional<Role> role = event.getMember().getRoles()
-                            .stream().filter(r -> r.getName().equalsIgnoreCase(command.discordRole))
+                            .stream().filter(r -> r.getName().equalsIgnoreCase(command.discordRole)  || r.getId().equals(command.discordRole))
                             .findFirst();
 
                     if (role.isPresent()) {

@@ -93,8 +93,8 @@ public class SystemUtils {
     }
 
     public static boolean hasPermission(BotController controller, Member member) {
-        if (!controller.getAdminRole().isEmpty()) {
-            return member.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase(controller.getAdminRole()));
+        if (controller.getAdminRole() != null) {
+            return member.getRoles().stream().anyMatch(r -> r.getIdLong() == controller.getAdminRole().getIdLong());
         }
         return member.hasPermission(Permission.ADMINISTRATOR) || member.hasPermission(Permission.KICK_MEMBERS);
     }

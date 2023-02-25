@@ -32,8 +32,8 @@ public class BaseCommand extends Command {
 
     public BaseCommand(BotController controller, boolean requiresPerms) {
         if (requiresPerms) {
-            if (!controller.getAdminRole().isEmpty()) {
-                this.requiredRole = controller.getAdminRole();
+            if (controller.getAdminRole() != null) {
+                this.requiredRole = controller.getAdminRole().getName();
             } else {
                 this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
             }
