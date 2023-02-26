@@ -138,7 +138,7 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
                 if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                     String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getUser().getName() : event.getMember().getNickname();
                     nickName = nickName + " [MC: " + mcName + "]";
-                    player.linkAccount(nickName, event.getMember());
+                    player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
                 }
             } else {
                 event.reply("Player " + mcName + " could not be whitelisted. Either they are already whitelisted, or an error occurred").setEphemeral(true).queue();

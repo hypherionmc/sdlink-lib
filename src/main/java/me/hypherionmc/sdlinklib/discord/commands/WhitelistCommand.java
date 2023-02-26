@@ -122,7 +122,7 @@ public class WhitelistCommand extends Command {
                     if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                         String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
                         nickName = nickName + " [MC: " + args[1] + "]";
-                        player.linkAccount(nickName, event.getMember());
+                        player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
                         return;
                     }
                 } else {
