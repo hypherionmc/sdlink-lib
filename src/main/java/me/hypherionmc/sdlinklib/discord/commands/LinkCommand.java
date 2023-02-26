@@ -27,12 +27,17 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
 import me.hypherionmc.sdlinklib.utils.Result;
+import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 
 public class LinkCommand extends BaseCommand {
 
+    private final BotController controller;
+
     public LinkCommand(BotController controller) {
         super(controller, false);
+        this.controller =  controller;
         this.guildOnly = true;
 
         this.name = "link";
@@ -57,6 +62,10 @@ public class LinkCommand extends BaseCommand {
             nickName = nickName + " [MC: " + args[0] + "]";
             Result result = player.linkAccount(nickName, event.getMember());
             event.reply(result.getMessage());
+
+            if(controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getLinkedRole()).queue();
+            }
         }
     }
 }

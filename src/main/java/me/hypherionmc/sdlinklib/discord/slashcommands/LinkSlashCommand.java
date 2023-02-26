@@ -48,7 +48,6 @@ import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
  */
 public class LinkSlashCommand extends SlashCommand {
 
-    private UserTable userTable = new UserTable();
     private final BotController controller;
 
     public LinkSlashCommand(BotController controller) {
@@ -63,7 +62,6 @@ public class LinkSlashCommand extends SlashCommand {
 
     @Override
     protected void execute(SlashCommandEvent event) {
-        userTable = new UserTable();
         String mcName = event.getOption("mcname") != null ? event.getOption("mcname").getAsString() : "";
 
         if (mcName.isEmpty()) {
@@ -88,7 +86,6 @@ public class LinkSlashCommand extends SlashCommand {
     }
 
     public static class RemoveLinkSlashCommand extends SlashCommand {
-        private UserTable userTable = new UserTable();
         private final BotController controller;
 
         final Pattern pattern = Pattern.compile("\\[MC: [a-zA-Z]+]\\s+", Pattern.CASE_INSENSITIVE);
@@ -104,7 +101,7 @@ public class LinkSlashCommand extends SlashCommand {
 
         @Override
         protected void execute(SlashCommandEvent event) {
-            userTable = new UserTable();
+            UserTable userTable = new UserTable();
             List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getUser().getIdLong() + "'");
 
             if (tables.isEmpty()) {
