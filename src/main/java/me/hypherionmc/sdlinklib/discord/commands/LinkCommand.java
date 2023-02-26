@@ -27,9 +27,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
 import me.hypherionmc.sdlinklib.utils.Result;
-import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.UserSnowflake;
 
 public class LinkCommand extends BaseCommand {
 
@@ -59,13 +57,9 @@ public class LinkCommand extends BaseCommand {
             }
 
             String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
-            nickName = nickName + " [MC: " + args[0] + "]";
-            Result result = player.linkAccount(nickName, event.getMember());
+            nickName = nickName + " [MC: " + player.getUsername() + "]";
+            Result result = player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
             event.reply(result.getMessage());
-
-            if(controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
-                event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getLinkedRole()).queue();
-            }
         }
     }
 }
