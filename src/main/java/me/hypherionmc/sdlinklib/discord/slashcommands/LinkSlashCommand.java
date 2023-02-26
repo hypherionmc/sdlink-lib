@@ -77,6 +77,10 @@ public class LinkSlashCommand extends SlashCommand {
             String nickName = event.getMember().getEffectiveName();
             Result result = player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
             event.reply(result.getMessage()).setEphemeral(true).queue();
+
+            if (controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
+                event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getLinkedRole()).queue();
+            }
         }
     }
 
