@@ -63,15 +63,15 @@ public class SystemUtils {
 
     public static String toDuration(long duration) {
         StringBuffer res = new StringBuffer();
-        for(int i=0; i < times.size(); i++) {
+        for (int i = 0; i < times.size(); i++) {
             Long current = times.get(i);
             long temp = duration / current;
-            if(temp>0) {
-                res.append(temp).append(" ").append(timesString.get(i) ).append(temp != 1 ? "s" : "");
+            if (temp > 0) {
+                res.append(temp).append(" ").append(timesString.get(i)).append(temp != 1 ? "s" : "");
                 break;
             }
         }
-        if("".equals(res.toString()))
+        if ("".equals(res.toString()))
             return "0 seconds ago";
         else
             return res.toString();
@@ -79,17 +79,17 @@ public class SystemUtils {
 
     public static String secondsToTimestamp(long sec) {
         long seconds = sec % 60;
-        long minutes = sec / 60;
-        if (minutes >= 60) {
-            long hours = minutes / 60;
-            minutes %= 60;
-            if( hours >= 24) {
-                long days = hours / 24;
-                return String.format("%d day(s), %02d hour(s), %02d minute(s), %02d second(s)", days, hours % 24, minutes, seconds);
-            }
-            return String.format("%02d hour(s), %02d minute(s), %02d second(s)", hours, minutes, seconds);
+        long minutes = (sec / 60) % 60;
+        long hours = (sec / 3600) % 24;
+        long days = sec / (3600 * 24);
+
+        String timeString = String.format("%02d hour(s), %02d minute(s), %02d second(s)", hours, minutes, seconds);
+
+        if (days > 0) {
+            timeString = String.format("%d day(s), %s", days, timeString);
         }
-        return String.format("00 hour(s), %02d minute(s), %02d second(s)", minutes, seconds);
+
+        return timeString;
     }
 
     public static boolean hasPermission(BotController controller, Member member) {
