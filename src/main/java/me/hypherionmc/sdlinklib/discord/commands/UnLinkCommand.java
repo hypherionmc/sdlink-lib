@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 
 import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class UnLinkCommand extends Command {
 
     private UserTable userTable = new UserTable();

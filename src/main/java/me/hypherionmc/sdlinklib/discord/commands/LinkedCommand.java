@@ -32,6 +32,7 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 
 import java.util.List;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class LinkedCommand extends BaseCommand {
 
     private UserTable table = new UserTable();

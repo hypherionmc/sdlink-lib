@@ -42,6 +42,7 @@ import java.util.List;
 import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 import static me.hypherionmc.sdlinklib.discord.commands.UnLinkCommand.pattern;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class OfflineWhitelist extends Command {
 
     private final BotController controller;

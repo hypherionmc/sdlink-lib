@@ -50,7 +50,7 @@ public class BotSettingsConfig {
     public boolean slashCommands = false;
 
     @Path("botPrefix")
-    @SpecComment("The prefix to use for bot commands. Example: ~players. THIS HAS NO EFFECT WHEN USING SLASH COMMANDS")
+    @SpecComment("The prefix to use for bot commands. Example: ~players. THIS HAS NO EFFECT WHEN USING SLASH COMMANDS\n - WARNING: TEXT COMMANDS HAVE BEEN DEPRECATED, USE SLASH COMMANDS INSTEAD!!")
     public String botPrefix = "~";
 
     @Path("botStatus")

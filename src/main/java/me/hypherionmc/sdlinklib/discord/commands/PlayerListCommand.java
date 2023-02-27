@@ -30,6 +30,7 @@ import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 
 import java.util.List;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class PlayerListCommand extends Command {
 
     private final IMinecraftHelper minecraftHelper;

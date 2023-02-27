@@ -29,6 +29,7 @@ import me.hypherionmc.sdlinklib.discord.slashcommands.ServerStatusSlashCommand;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class ServerStatusCommand extends BaseCommand {
 
     private final IMinecraftHelper minecraftHelper;
