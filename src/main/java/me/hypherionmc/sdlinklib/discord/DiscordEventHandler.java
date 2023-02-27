@@ -92,6 +92,13 @@ public class DiscordEventHandler extends ListenerAdapter {
                                .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
                                .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())));
 
+                       if (modConfig.botConfig.botStatusType == Activity.ActivityType.STREAMING) {
+                           act = Activity.of(modConfig.botConfig.botStatusType, modConfig.botConfig.botStatus
+                                   .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
+                                   .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())),
+                                   modConfig.botConfig.botStatusStreamingURL);
+                       }
+
                        event.getJDA().getPresence().setActivity(act);
                    }
                } catch (Exception e) {

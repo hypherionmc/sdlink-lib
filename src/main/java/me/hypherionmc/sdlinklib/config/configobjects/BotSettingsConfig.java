@@ -42,7 +42,7 @@ public class BotSettingsConfig {
     public int activityUpdateInterval = 30;
 
     @Path("staffRole")
-    @SpecComment("If defined, only this role can use Staff Functions. Otherwise, it defaults back to admin/kick perms")
+    @SpecComment("If a role ID (or name) is defined here, only members with this role can use Staff Functions. Otherwise, it defaults back to admin/kick perms")
     public String staffRole = "";
 
     @Path("slashCommands")
@@ -60,6 +60,10 @@ public class BotSettingsConfig {
     @Path("botStatusType")
     @SpecComment("The type of the status displayed on the bot. Valid entries are: PLAYING, STREAMING, WATCHING, LISTENING")
     public ActivityType botStatusType = ActivityType.PLAYING;
+
+    @Path("botStatusStreamingURL")
+    @SpecComment("The URL that will be used when the \"botStatusType\" is set to \"STREAMING\", required to display as \"streaming\".")
+    public String botStatusStreamingURL = "https://twitch.tv/KuryKat";
 
     @Path("doTopicUpdates")
     @SpecComment("Should the bot update the topic of your chat channel automatically")
