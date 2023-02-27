@@ -99,11 +99,17 @@ public class MinecraftPlayer {
             tables.forEach(UserTable::update);
         }
 
-        String nickName = nickname;
-        nickName = nickName + " [MC: " + this.username + "]";
+        String suffix = " [MC: " + this.username + "]";
+        int availableChars = 32 - suffix.length();
+
+        if (nickname.length() > availableChars) {
+            nickname = nickname.substring(0, availableChars - 3) + "...";
+        }
+
+        nickname += suffix;
 
         try {
-            member.modifyNickname(nickName).queue();
+            member.modifyNickname(nickname).queue();
         } catch (Exception e) {
             if (modConfig.generalConfig.debugging) {
                 e.printStackTrace();

@@ -70,12 +70,11 @@ public class LinkSlashCommand extends SlashCommand {
             MinecraftPlayer player = MinecraftPlayer.standard(mcName);
 
             if (!player.isValid()) {
-                event.reply("Failed to fetch info for player " + mcName);
+                event.reply("Failed to fetch info for player " + mcName).setEphemeral(true).queue();
                 return;
             }
 
-            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getUser().getName() : event.getMember().getNickname();
-            nickName = nickName + " [MC: " + player.getUsername() + "]";
+            String nickName = event.getMember().getEffectiveName();
             Result result = player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
             event.reply(result.getMessage()).setEphemeral(true).queue();
         }
@@ -84,7 +83,7 @@ public class LinkSlashCommand extends SlashCommand {
     public static class RemoveLinkSlashCommand extends SlashCommand {
         private final BotController controller;
 
-        final Pattern pattern = Pattern.compile("\\[MC: [a-zA-Z]+]\\s+", Pattern.CASE_INSENSITIVE);
+        final Pattern pattern = Pattern.compile("\\s*?\\[MC: \\w*?]", Pattern.CASE_INSENSITIVE);
 
         public RemoveLinkSlashCommand(BotController controller) {
             this.controller = controller;
@@ -101,23 +100,21 @@ public class LinkSlashCommand extends SlashCommand {
             List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getUser().getIdLong() + "'");
 
             if (tables.isEmpty()) {
-                event.reply("Your discord account does not appear to be linked to a minecraft account");
+                event.reply("Your discord account does not appear to be linked to a minecraft account").setEphemeral(true).queue();
             } else {
                 tables.forEach(SQLiteTable::delete);
 
-                String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getUser().getName() : event.getMember().getNickname();
-                if (pattern.matcher(nickName).matches()) {
-                    nickName = pattern.matcher(nickName).replaceAll("");
-                }
-
-                try {
-                    event.getMember().modifyNickname(nickName).queue();
-                } catch (Exception e) {
-                    if (modConfig.generalConfig.debugging) {
-                        e.printStackTrace();
+                String nickName = event.getMember().getEffectiveName();
+                if (pattern.matcher(nickName).find()) {
+                    try {
+                        event.getMember().modifyNickname(null).queue();
+                    } catch (Exception e) {
+                        if (modConfig.generalConfig.debugging) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-                event.reply("Your discord and MC account have been unlinked");
+                event.reply("Your discord and MC account have been unlinked").setEphemeral(true).queue();
 
                 if (controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, event.getMember())) {
                     event.getGuild().removeRoleFromMember(UserSnowflake.fromId(event.getMember().getId()), controller.getLinkedRole()).queue();

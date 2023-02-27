@@ -56,8 +56,7 @@ public class LinkCommand extends BaseCommand {
                 return;
             }
 
-            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
-            nickName = nickName + " [MC: " + player.getUsername() + "]";
+            String nickName = event.getMember().getEffectiveName();
             Result result = player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
             event.reply(result.getMessage());
         }

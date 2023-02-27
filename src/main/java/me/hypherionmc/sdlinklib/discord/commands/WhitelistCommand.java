@@ -120,8 +120,7 @@ public class WhitelistCommand extends Command {
                     }
 
                     if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
-                        String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
-                        nickName = nickName + " [MC: " + args[1] + "]";
+                        String nickName = event.getMember().getEffectiveName();
                         player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
                         return;
                     }
@@ -173,16 +172,14 @@ public class WhitelistCommand extends Command {
                         if (!tables.isEmpty()) {
                             tables.forEach(SQLiteTable::delete);
 
-                            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
-                            if (pattern.matcher(nickName).matches()) {
-                                nickName = pattern.matcher(nickName).replaceAll("");
-                            }
-
-                            try {
-                                event.getMember().modifyNickname(nickName).queue();
-                            } catch (Exception e) {
-                                if (modConfig.generalConfig.debugging) {
-                                    e.printStackTrace();
+                            String nickName = event.getMember().getEffectiveName();
+                            if (pattern.matcher(nickName).find()) {
+                                try {
+                                    event.getMember().modifyNickname(null).queue();
+                                } catch (Exception e) {
+                                    if (modConfig.generalConfig.debugging) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         }
