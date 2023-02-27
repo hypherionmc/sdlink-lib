@@ -27,6 +27,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.discord.slashcommands.ServerStatusSlashCommand;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class ServerStatusCommand extends BaseCommand {
 
@@ -43,7 +44,8 @@ public class ServerStatusCommand extends BaseCommand {
 
     @Override
     protected void execute(CommandEvent event) {
-        ServerStatusSlashCommand.runStatusCommand(minecraftHelper, event.getChannel(), null);
+        Button refreshButton = Button.danger("refreshbtn", "Refresh");
+        event.getChannel().sendMessageEmbeds(ServerStatusSlashCommand.runStatusCommand(minecraftHelper)).addActionRow(refreshButton).queue();
     }
 
 }
