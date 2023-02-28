@@ -63,7 +63,7 @@ public class BotSettingsConfig {
 
     @Path("botStatusStreamingURL")
     @SpecComment("The URL that will be used when the \"botStatusType\" is set to \"STREAMING\", required to display as \"streaming\".")
-    public String botStatusStreamingURL = "https://twitch.tv/KuryKat";
+    public String botStatusStreamingURL = "https://twitch.tv/twitch";
 
     @Path("doTopicUpdates")
     @SpecComment("Should the bot update the topic of your chat channel automatically")
