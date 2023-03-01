@@ -29,10 +29,14 @@ import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
 import me.hypherionmc.sdlinklib.utils.Result;
 import net.dv8tion.jda.api.Permission;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class LinkCommand extends BaseCommand {
+
+    private final BotController controller;
 
     public LinkCommand(BotController controller) {
         super(controller, false);
+        this.controller =  controller;
         this.guildOnly = true;
 
         this.name = "link";
@@ -53,9 +57,8 @@ public class LinkCommand extends BaseCommand {
                 return;
             }
 
-            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
-            nickName = nickName + " [MC: " + args[1] + "]";
-            Result result = player.linkAccount(nickName, event.getMember());
+            String nickName = event.getMember().getEffectiveName();
+            Result result = player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
             event.reply(result.getMessage());
         }
     }

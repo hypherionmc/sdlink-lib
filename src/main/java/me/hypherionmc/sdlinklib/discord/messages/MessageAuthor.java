@@ -23,9 +23,9 @@
  */
 package me.hypherionmc.sdlinklib.discord.messages;
 
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
-
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
+
+import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 public class MessageAuthor {
 
@@ -42,7 +42,7 @@ public class MessageAuthor {
     }
 
     public static MessageAuthor of(String username, String uuid, IMinecraftHelper minecraftHelper) {
-        if(minecraftHelper.isOnlineMode()) {
+        if (minecraftHelper.isOnlineMode()) {
             return new MessageAuthor(username, modConfig.chatConfig.playerAvatarType.getUrl().replace("{uuid}", uuid), false);
         } else {
             return new MessageAuthor(username, modConfig.chatConfig.playerAvatarType.getUrl().replace("{uuid}", username), false);

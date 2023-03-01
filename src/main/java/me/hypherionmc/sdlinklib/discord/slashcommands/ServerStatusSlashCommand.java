@@ -28,8 +28,7 @@ import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -55,11 +54,11 @@ public class ServerStatusSlashCommand extends BaseSlashCommand {
 
     @Override
     protected void execute(SlashCommandEvent event) {
-        runStatusCommand(minecraftHelper, event.getChannel(), null);
-        event.reply("Success").setEphemeral(true).queue();
+        Button refreshButton = Button.danger("refreshbtn", "Refresh");
+        event.replyEmbeds(runStatusCommand(minecraftHelper)).addActionRow(refreshButton).queue();
     }
 
-    public static void runStatusCommand(IMinecraftHelper minecraftHelper, MessageChannel channel, Message message) {
+    public static MessageEmbed runStatusCommand(IMinecraftHelper minecraftHelper) {
         SystemInfo systemInfo = new SystemInfo();
         HardwareAbstractionLayer hal = systemInfo.getHardware();
         CentralProcessor cpu = hal.getProcessor();
@@ -83,7 +82,8 @@ public class ServerStatusSlashCommand extends BaseSlashCommand {
                     .append(" free of ")
                     .append(SystemUtils.byteToHuman(hal.getMemory().getTotal()))
                     .append("```\r\n");
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         stringBuilder
                 .append("**OS:**\r\n```\r\n")
@@ -114,7 +114,9 @@ public class ServerStatusSlashCommand extends BaseSlashCommand {
 
         stringBuilder
                 .append("**Players Online:**\r\n```\r\n")
-                .append(minecraftHelper.getOnlinePlayerCount() + "/" + minecraftHelper.getMaxPlayerCount())
+                .append(minecraftHelper.getOnlinePlayerCount())
+                .append("/")
+                .append(minecraftHelper.getMaxPlayerCount())
                 .append("```\r\n");
 
         stringBuilder
@@ -124,12 +126,6 @@ public class ServerStatusSlashCommand extends BaseSlashCommand {
 
         builder.setDescription(stringBuilder.toString());
 
-        Button refreshButton = Button.danger("refreshbtn", "Refresh");
-
-        if (message != null) {
-            message.editMessageEmbeds(builder.build()).queue();
-        } else {
-            channel.sendMessageEmbeds(builder.build()).addActionRow(refreshButton).queue();
-        }
+        return builder.build();
     }
 }

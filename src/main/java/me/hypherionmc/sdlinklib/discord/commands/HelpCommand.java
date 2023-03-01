@@ -31,6 +31,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import java.awt.*;
 import java.util.List;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class HelpCommand extends BaseCommand {
 
     private final BotController engine;

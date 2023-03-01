@@ -28,6 +28,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.Permission;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class BaseCommand extends Command {
 
     public BaseCommand(BotController controller, boolean requiresPerms) {

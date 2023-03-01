@@ -24,7 +24,10 @@
 package me.hypherionmc.sdlinklib.utils;
 
 import me.hypherionmc.sdlinklib.database.UserTable;
+import me.hypherionmc.sdlinklib.discord.BotController;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -82,7 +85,7 @@ public class MinecraftPlayer {
     }
 
 
-    public Result linkAccount(String nickname, Member member) {
+    public Result linkAccount(String nickname, Member member, Guild guild, BotController controller) {
         UserTable userTable = new UserTable();
 
         userTable.username = this.username;
@@ -96,15 +99,25 @@ public class MinecraftPlayer {
             tables.forEach(UserTable::update);
         }
 
-        String nickName = nickname;
-        nickName = nickName + " [MC: " + this.username + "]";
+        String suffix = " [MC: " + this.username + "]";
+        int availableChars = 32 - suffix.length();
+
+        if (nickname.length() > availableChars) {
+            nickname = nickname.substring(0, availableChars - 3) + "...";
+        }
+
+        nickname += suffix;
 
         try {
-            member.modifyNickname(nickName).queue();
+            member.modifyNickname(nickname).queue();
         } catch (Exception e) {
             if (modConfig.generalConfig.debugging) {
                 e.printStackTrace();
             }
+        }
+
+        if (controller.getLinkedRole() != null && !SystemUtils.hasPermission(controller, member)) {
+            guild.addRoleToMember(UserSnowflake.fromId(member.getId()), controller.getLinkedRole()).queue();
         }
 
         return Result.success("Your Discord and MC accounts have been linked");

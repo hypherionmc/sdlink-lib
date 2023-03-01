@@ -37,10 +37,11 @@ import java.util.regex.Pattern;
 
 import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
+@Deprecated // Since v3.0.12 - For Removal
 public class UnLinkCommand extends Command {
 
     private UserTable userTable = new UserTable();
-    public static final Pattern pattern = Pattern.compile("\\[MC: [a-zA-Z]+]\\s+", Pattern.CASE_INSENSITIVE);
+    public static final Pattern pattern = Pattern.compile("\\s*?\\[MC: \\w*?]", Pattern.CASE_INSENSITIVE);
 
     private final BotController controller;
 
@@ -63,16 +64,14 @@ public class UnLinkCommand extends Command {
         } else {
             tables.forEach(SQLiteTable::delete);
 
-            String nickName = (event.getMember().getNickname() == null || event.getMember().getNickname().isEmpty()) ? event.getAuthor().getName() : event.getMember().getNickname();
-            if (pattern.matcher(nickName).matches()) {
-                nickName = pattern.matcher(nickName).replaceAll("");
-            }
-
-            try {
-                event.getMember().modifyNickname(nickName).queue();
-            } catch (Exception e) {
-                if (modConfig.generalConfig.debugging) {
-                    e.printStackTrace();
+            String nickName = event.getMember().getEffectiveName();
+            if (pattern.matcher(nickName).find()) {
+                try {
+                    event.getMember().modifyNickname(null).queue();
+                } catch (Exception e) {
+                    if (modConfig.generalConfig.debugging) {
+                        e.printStackTrace();
+                    }
                 }
             }
             event.reply("Your discord and MC account have been unlinked");
