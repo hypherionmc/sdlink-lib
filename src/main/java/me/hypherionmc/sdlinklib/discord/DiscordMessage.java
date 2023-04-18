@@ -88,6 +88,8 @@ public final class DiscordMessage {
 
         public Builder withMessage(String message) {
             message = message.replace("<@", "");
+            message = message.replace("@everyone", "");
+            message = message.replace("@here", "");
             this.message = message;
             return this;
         }

@@ -195,7 +195,7 @@ public class WhitelistCommand extends Command {
 
             if (args[0].equalsIgnoreCase("list") && SystemUtils.hasPermission(controller, event.getMember())) {
                 List<String> string = minecraftHelper.getWhitelistedPlayers();
-                event.reply("**Whitelisted Players:**\n\n" + ArrayUtils.toString(string));
+                event.reply("**Whitelisted Players:**\n\n`" + ArrayUtils.toString(string) + "`");
             }
         }
     }

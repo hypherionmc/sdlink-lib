@@ -247,7 +247,7 @@ public class WhitelistSlashCommand extends SlashCommand {
         @Override
         protected void execute(SlashCommandEvent event) {
             List<String> string = minecraftHelper.getWhitelistedPlayers();
-            event.reply("**Whitelisted Players:**\n\n" + ArrayUtils.toString(string)).setEphemeral(true).queue();
+            event.reply("**Whitelisted Players:**\n\n`" + ArrayUtils.toString(string) + "`").setEphemeral(true).queue();
         }
     }
 }

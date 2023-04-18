@@ -40,7 +40,7 @@ import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
  */
 public class CommandManager {
 
-    private HashMap<Command, SlashCommand> commands = new HashMap<>();
+    private final HashMap<Command, SlashCommand> commands = new HashMap<>();
     private final BotController botController;
 
     public CommandManager(BotController controller) {
