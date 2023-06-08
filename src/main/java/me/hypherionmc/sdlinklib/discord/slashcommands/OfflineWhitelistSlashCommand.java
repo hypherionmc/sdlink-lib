@@ -26,6 +26,7 @@ package me.hypherionmc.sdlinklib.discord.slashcommands;
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import me.hypherionmc.jqlite.data.SQLiteTable;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
@@ -41,7 +42,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.Collections;
 import java.util.List;
 
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 import static me.hypherionmc.sdlinklib.discord.commands.UnLinkCommand.pattern;
 
 /**
@@ -55,11 +55,11 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
         this.help = "Whitelist/Un-Whitelist Offline Minecraft Users";
         this.guildOnly = true;
 
-        if (modConfig.generalConfig.adminWhitelistOnly) {
+        if (ModConfig.INSTANCE.generalConfig.adminWhitelistOnly) {
             this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
         }
 
-        if (modConfig.generalConfig.offlinewhitelist) {
+        if (ModConfig.INSTANCE.generalConfig.offlinewhitelist) {
             this.children = new SlashCommand[] {
                     new AddWhitelistSlashCommand(controller),
                     new RemoveWhitelistSlashCommand(controller),
@@ -84,7 +84,7 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
             this.guildOnly = true;
             this.minecraftHelper = controller.getMinecraftHelper();
 
-            if (modConfig.generalConfig.adminWhitelistOnly) {
+            if (ModConfig.INSTANCE.generalConfig.adminWhitelistOnly) {
                 this.userPermissions = new Permission[]{Permission.ADMINISTRATOR, Permission.KICK_MEMBERS};
             }
 
@@ -96,7 +96,7 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
         protected void execute(SlashCommandEvent event) {
             String mcName = event.getOption("mcname") != null ? event.getOption("mcname").getAsString() : "";
 
-            if (!modConfig.generalConfig.offlinewhitelist) {
+            if (!ModConfig.INSTANCE.generalConfig.offlinewhitelist) {
                 event.reply("Offline Whitelisting is disabled").setEphemeral(true).queue();
                 return;
             }
@@ -104,7 +104,7 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
                 event.reply("Server Side whitelisting is disabled").setEphemeral(true).queue();
                 return;
             }
-            if (modConfig.generalConfig.adminWhitelistOnly && !SystemUtils.hasPermission(controller, event.getMember())) {
+            if (ModConfig.INSTANCE.generalConfig.adminWhitelistOnly && !SystemUtils.hasPermission(controller, event.getMember())) {
                 event.reply("Sorry, only staff members can use this command").setEphemeral(true).queue();
                 return;
             }
@@ -135,7 +135,7 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
                     event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getWhitelistedRole()).queue();
                 }
 
-                if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
+                if (ModConfig.INSTANCE.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                     String nickName = event.getMember().getEffectiveName();
                     player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
                 }
@@ -158,7 +158,7 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
             this.guildOnly = true;
             this.minecraftHelper = controller.getMinecraftHelper();
 
-            if (modConfig.generalConfig.adminWhitelistOnly) {
+            if (ModConfig.INSTANCE.generalConfig.adminWhitelistOnly) {
                 this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
             }
 
@@ -197,7 +197,7 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
                     event.getGuild().removeRoleFromMember(UserSnowflake.fromId(event.getMember().getId()), controller.getWhitelistedRole()).queue();
                 }
 
-                if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
+                if (ModConfig.INSTANCE.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                     UserTable userTable = new UserTable();
                     List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getUser().getIdLong() + "'");
 
@@ -209,7 +209,7 @@ public class OfflineWhitelistSlashCommand extends SlashCommand {
                             try {
                                 event.getMember().modifyNickname(null).queue();
                             } catch (Exception e) {
-                                if (modConfig.generalConfig.debugging) {
+                                if (ModConfig.INSTANCE.generalConfig.debugging) {
                                     e.printStackTrace();
                                 }
                             }

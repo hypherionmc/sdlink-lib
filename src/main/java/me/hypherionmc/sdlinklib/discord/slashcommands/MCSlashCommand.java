@@ -25,6 +25,7 @@ package me.hypherionmc.sdlinklib.discord.slashcommands;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.config.configobjects.LinkedCommandsConfig;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.entities.Role;
@@ -33,8 +34,6 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.ArrayList;
 import java.util.Optional;
-
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 public class MCSlashCommand extends SlashCommand {
 
@@ -53,15 +52,15 @@ public class MCSlashCommand extends SlashCommand {
 
     @Override
     protected void execute(SlashCommandEvent event) {
-        if (event.getChannel().getIdLong() != modConfig.channelConfig.consoleChannelID) {
+        if (event.getChannel().getIdLong() != ModConfig.INSTANCE.channelConfig.consoleChannelID) {
             event.reply("You can only execute MC commands in the Console Channel").setEphemeral(true).queue();
             return;
         }
 
-        if (modConfig.linkedCommands.enabled) {
+        if (ModConfig.INSTANCE.linkedCommands.enabled) {
             String slug = event.getOption("slug") != null ? event.getOption("slug").getAsString() : "";
             String args = event.getOption("args") != null ? event.getOption("args").getAsString() : "";
-            Optional<LinkedCommandsConfig.Command> linkedCommand = modConfig.linkedCommands.commands.stream().filter(c -> c.discordCommand.equalsIgnoreCase(slug)).findFirst();
+            Optional<LinkedCommandsConfig.Command> linkedCommand = ModConfig.INSTANCE.linkedCommands.commands.stream().filter(c -> c.discordCommand.equalsIgnoreCase(slug)).findFirst();
 
             linkedCommand.ifPresent(command -> {
                 if (!command.discordRole.isEmpty()) {

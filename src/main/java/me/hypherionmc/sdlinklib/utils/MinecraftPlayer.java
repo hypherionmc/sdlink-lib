@@ -23,6 +23,7 @@
  */
 package me.hypherionmc.sdlinklib.utils;
 
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.entities.Guild;
@@ -41,8 +42,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 public class MinecraftPlayer {
 
@@ -111,7 +110,7 @@ public class MinecraftPlayer {
         try {
             member.modifyNickname(nickname).queue();
         } catch (Exception e) {
-            if (modConfig.generalConfig.debugging) {
+            if (ModConfig.INSTANCE.generalConfig.debugging) {
                 e.printStackTrace();
             }
         }

@@ -23,15 +23,25 @@
  */
 package me.hypherionmc.sdlinklib.config;
 
+import com.hypherionmc.craterlib.core.config.ModuleConfig;
+import com.hypherionmc.craterlib.core.config.annotations.NoConfigScreen;
+import me.hypherionmc.moonconfig.core.CommentedConfig;
 import me.hypherionmc.moonconfig.core.conversion.Path;
 import me.hypherionmc.moonconfig.core.conversion.SpecComment;
 import me.hypherionmc.sdlinklib.config.configobjects.*;
+import me.hypherionmc.sdlinklib.discord.BotController;
+
+import java.io.File;
 
 /**
  * @author HypherionSA
  * The main config Structure.
  */
-public class ModConfig {
+@NoConfigScreen
+public class ModConfig extends ModuleConfig {
+
+    public static ModConfig INSTANCE = new ModConfig();
+    public static int configVer = 24;
 
     @Path("general")
     @SpecComment("General Mod Config")
@@ -69,4 +79,27 @@ public class ModConfig {
     @SpecComment("Execute Minecraft commands in Discord")
     public LinkedCommandsConfig linkedCommands = new LinkedCommandsConfig();
 
+    public ModConfig() {
+        super("sdlink", "config/simple-discord-bot.toml");
+        registerAndSetup(this);
+    }
+
+    @Override
+    public void updateConfigValues(CommentedConfig oldConfig, CommentedConfig newConfig, CommentedConfig outputConfig, String subKey) {
+        if (oldConfig.contains("general.configVersion") && oldConfig.getInt("general.configVersion") < 11) {
+            getConfigPath().renameTo(new File(getConfigPath().getAbsolutePath().replace(".toml", ".old")));
+            saveConfig(new ModConfig());
+            BotController.LOGGER.info("Your config file cannot be auto-upgraded. The old one has been backed up and a new one created. Please re-configure the mod");
+            return;
+        }
+
+        if (!oldConfig.contains("general.configVersion") || oldConfig.getInt("general.configVersion") != configVer) {
+            super.updateConfigValues(oldConfig, newConfig, outputConfig, subKey);
+        }
+    }
+
+    @Override
+    public void configReloaded() {
+        INSTANCE = loadConfig(this);
+    }
 }

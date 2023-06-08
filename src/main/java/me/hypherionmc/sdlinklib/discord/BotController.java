@@ -27,7 +27,7 @@ import club.minnced.discord.webhook.WebhookClient;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import me.hypherionmc.jqlite.DatabaseEngine;
-import me.hypherionmc.sdlinklib.config.ConfigController;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
@@ -57,8 +57,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
-
 /**
  * @author HypherionSA
  * The main controller class that handles the discord side of the mod
@@ -84,7 +82,6 @@ public final class BotController {
     private UserTable userTable = new UserTable();
 
     // Mod Specific Variables
-    private final ConfigController configController;
     private final IMinecraftHelper minecraftHelper;
     private DiscordEventHandler discordEventHandler;
 
@@ -100,7 +97,6 @@ public final class BotController {
         LOGGER = logger;
 
         // Initialize Config and set Minecraft Helper Class
-        configController = new ConfigController("./config");
         this.minecraftHelper = minecraftHelper;
 
         // Register Database Tables
@@ -108,19 +104,19 @@ public final class BotController {
         databaseEngine.registerTable(userTable);
 
         // Initialize Webhook Clients
-        if (modConfig.webhookConfig.enabled) {
-            if (!modConfig.webhookConfig.chatWebhook.isEmpty()) {
-                chatWebhookClient = new SDWebhookClient(modConfig.webhookConfig.chatWebhook).build();
+        if (ModConfig.INSTANCE.webhookConfig.enabled) {
+            if (!ModConfig.INSTANCE.webhookConfig.chatWebhook.isEmpty()) {
+                chatWebhookClient = new SDWebhookClient(ModConfig.INSTANCE.webhookConfig.chatWebhook).build();
                 LOGGER.info("Using Webhook for Chat Messages");
             }
 
-            if (!modConfig.webhookConfig.eventsWebhook.isEmpty()) {
-                eventWebhookClient = new SDWebhookClient(modConfig.webhookConfig.eventsWebhook).build();
+            if (!ModConfig.INSTANCE.webhookConfig.eventsWebhook.isEmpty()) {
+                eventWebhookClient = new SDWebhookClient(ModConfig.INSTANCE.webhookConfig.eventsWebhook).build();
                 LOGGER.info("Using Webhook for Event Messages");
             }
 
-            if (!modConfig.webhookConfig.consoleWebhook.isEmpty()) {
-                consoleWebhookClient = new SDWebhookClient(modConfig.webhookConfig.consoleWebhook).build();
+            if (!ModConfig.INSTANCE.webhookConfig.consoleWebhook.isEmpty()) {
+                consoleWebhookClient = new SDWebhookClient(ModConfig.INSTANCE.webhookConfig.consoleWebhook).build();
                 LOGGER.info("Using Webhook for Console Messages");
             }
         }
@@ -131,10 +127,10 @@ public final class BotController {
      * @return true or false
      */
     public boolean isBotReady() {
-        if (modConfig == null)
+        if (ModConfig.INSTANCE == null)
             return false;
 
-        if (!modConfig.generalConfig.enabled)
+        if (!ModConfig.INSTANCE.generalConfig.enabled)
             return false;
 
         if (_jda == null)
@@ -152,17 +148,17 @@ public final class BotController {
      */
     public void initializeBot() {
         // Check if the Config is loaded and Bot Token is specified
-        if (modConfig == null || modConfig.botConfig.botToken.isEmpty()) {
+        if (ModConfig.INSTANCE == null || ModConfig.INSTANCE.botConfig.botToken.isEmpty()) {
             LOGGER.error("Could not initialize bot. Could not load config or your Bot Token is missing. Bot will be disabled");
             return;
         }
 
         try {
             // Only attempt to connect if mod is enabled
-            if (modConfig.generalConfig.enabled) {
+            if (ModConfig.INSTANCE.generalConfig.enabled) {
                 // Setup the Discord API
                 _jda = JDABuilder.createLight(
-                    modConfig.botConfig.botToken,
+                    ModConfig.INSTANCE.botConfig.botToken,
                     GatewayIntent.GUILD_MEMBERS,
                     GatewayIntent.GUILD_MESSAGES,
                     GatewayIntent.MESSAGE_CONTENT
@@ -176,7 +172,7 @@ public final class BotController {
                 // Setup Commands
                 CommandClientBuilder clientBuilder = new CommandClientBuilder();
                 clientBuilder.setOwnerId("354707828298088459");
-                clientBuilder.setPrefix(modConfig.botConfig.botPrefix);
+                clientBuilder.setPrefix(ModConfig.INSTANCE.botConfig.botPrefix);
                 clientBuilder.setHelpWord("help");
                 clientBuilder.useHelpBuilder(false);
 
@@ -224,37 +220,37 @@ public final class BotController {
                         EnumSet<Permission> botPerms = bot.getPermissionsExplicit();
 
                         // Find staff roles, and add them to list
-                        if (!modConfig.botConfig.staffRole.isEmpty()) {
+                        if (!ModConfig.INSTANCE.botConfig.staffRole.isEmpty()) {
                             List<Role> roles = new ArrayList<>();
 
-                            if (ID_MATCHER.matcher(modConfig.botConfig.staffRole).matches()) {
-                                Role staffRole = guild.getRoleById(modConfig.botConfig.staffRole);
+                            if (ID_MATCHER.matcher(ModConfig.INSTANCE.botConfig.staffRole).matches()) {
+                                Role staffRole = guild.getRoleById(ModConfig.INSTANCE.botConfig.staffRole);
                                 if (staffRole != null) {
                                     roles = Collections.singletonList(staffRole);
                                 }
                             } else {
-                                roles = guild.getRolesByName(modConfig.botConfig.staffRole, true);
+                                roles = guild.getRolesByName(ModConfig.INSTANCE.botConfig.staffRole, true);
                             }
 
                             if (!roles.isEmpty()) {
                                 adminRole = roles.get(0);
                             } else {
                                 errCount.incrementAndGet();
-                                builder.append(errCount.get()).append(") ").append("Missing Staff Role. Role :").append(modConfig.botConfig.staffRole).append(" cannot be found in the server").append("\r\n");
+                                builder.append(errCount.get()).append(") ").append("Missing Staff Role. Role :").append(ModConfig.INSTANCE.botConfig.staffRole).append(" cannot be found in the server").append("\r\n");
                             }
                         }
 
                         // Find additional roles
-                        if (!modConfig.generalConfig.autoWhitelistRole.isEmpty()) {
+                        if (!ModConfig.INSTANCE.generalConfig.autoWhitelistRole.isEmpty()) {
                             List<Role> roles = new ArrayList<>();
 
-                            if (ID_MATCHER.matcher(modConfig.generalConfig.autoWhitelistRole).matches()) {
-                                Role whitelistRole = guild.getRoleById(modConfig.generalConfig.autoWhitelistRole);
+                            if (ID_MATCHER.matcher(ModConfig.INSTANCE.generalConfig.autoWhitelistRole).matches()) {
+                                Role whitelistRole = guild.getRoleById(ModConfig.INSTANCE.generalConfig.autoWhitelistRole);
                                 if (whitelistRole != null) {
                                     roles = Collections.singletonList(whitelistRole);
                                 }
                             } else {
-                                roles = guild.getRolesByName(modConfig.generalConfig.autoWhitelistRole, true);
+                                roles = guild.getRolesByName(ModConfig.INSTANCE.generalConfig.autoWhitelistRole, true);
                             }
 
                             if (!roles.isEmpty()) {
@@ -262,16 +258,16 @@ public final class BotController {
                             }
                         }
 
-                        if (!modConfig.generalConfig.linkedRole.isEmpty()) {
+                        if (!ModConfig.INSTANCE.generalConfig.linkedRole.isEmpty()) {
                             List<Role> roles = new ArrayList<>();
 
-                            if (ID_MATCHER.matcher(modConfig.generalConfig.linkedRole).matches()) {
-                                Role linkedRole = guild.getRoleById(modConfig.generalConfig.linkedRole);
+                            if (ID_MATCHER.matcher(ModConfig.INSTANCE.generalConfig.linkedRole).matches()) {
+                                Role linkedRole = guild.getRoleById(ModConfig.INSTANCE.generalConfig.linkedRole);
                                 if (linkedRole != null) {
                                     roles = Collections.singletonList(linkedRole);
                                 }
                             } else {
-                                roles = guild.getRolesByName(modConfig.generalConfig.linkedRole, true);
+                                roles = guild.getRolesByName(ModConfig.INSTANCE.generalConfig.linkedRole, true);
                             }
 
                             if (!roles.isEmpty()) {
@@ -310,11 +306,11 @@ public final class BotController {
                             }
                         }
 
-                        if (modConfig.channelConfig.channelID == 0) {
+                        if (ModConfig.INSTANCE.channelConfig.channelID == 0) {
                             errCount.incrementAndGet();
                             builder.append(errCount.get()).append(") ").append("channelID is not set.... The bot requires this to know where to relay messages from").append("\r\n");
                         } else {
-                            GuildChannel chatChannel = guild.getGuildChannelById(modConfig.channelConfig.channelID);
+                            GuildChannel chatChannel = guild.getGuildChannelById(ModConfig.INSTANCE.channelConfig.channelID);
 
                             if (chatChannel == null) {
                                 errCount.incrementAndGet();
@@ -335,7 +331,7 @@ public final class BotController {
                                        errCount.incrementAndGet();
                                        builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Embed Links").append("\r\n");
                                    }
-                                   if (modConfig.botConfig.doTopicUpdates && !chatPerms.contains(Permission.MANAGE_CHANNEL)) {
+                                   if (ModConfig.INSTANCE.botConfig.doTopicUpdates && !chatPerms.contains(Permission.MANAGE_CHANNEL)) {
                                        errCount.incrementAndGet();
                                        builder.append(errCount.get()).append(") ").append("Missing Chat Channel Permission: Manage Channel. Topic updates will not work").append("\r\n");
                                    }
@@ -343,8 +339,8 @@ public final class BotController {
                             }
                         }
 
-                        if (modConfig.channelConfig.eventsID != 0) {
-                            GuildChannel eventChannel = guild.getGuildChannelById(modConfig.channelConfig.eventsID);
+                        if (ModConfig.INSTANCE.channelConfig.eventsID != 0) {
+                            GuildChannel eventChannel = guild.getGuildChannelById(ModConfig.INSTANCE.channelConfig.eventsID);
 
                             if (eventChannel == null) {
                                 errCount.incrementAndGet();
@@ -365,7 +361,7 @@ public final class BotController {
                                         errCount.incrementAndGet();
                                         builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Send Messages").append("\r\n");
                                     }
-                                    if (modConfig.botConfig.doTopicUpdates && !eventPerms.contains(Permission.MANAGE_CHANNEL)) {
+                                    if (ModConfig.INSTANCE.botConfig.doTopicUpdates && !eventPerms.contains(Permission.MANAGE_CHANNEL)) {
                                         errCount.incrementAndGet();
                                         builder.append(errCount.get()).append(") ").append("Missing Event Channel Permission: Manage Channel. Topic updates will not work").append("\r\n");
                                     }
@@ -373,8 +369,8 @@ public final class BotController {
                             }
                         }
 
-                        if (modConfig.channelConfig.consoleChannelID != 0) {
-                            GuildChannel eventChannel = guild.getGuildChannelById(modConfig.channelConfig.consoleChannelID);
+                        if (ModConfig.INSTANCE.channelConfig.consoleChannelID != 0) {
+                            GuildChannel eventChannel = guild.getGuildChannelById(ModConfig.INSTANCE.channelConfig.consoleChannelID);
 
                             if (eventChannel == null) {
                                 errCount.incrementAndGet();
@@ -409,7 +405,7 @@ public final class BotController {
      * Check if whitelisting can be used, and send a message to the console
      */
     public void checkWhitelisting() {
-        if (modConfig.generalConfig.whitelisting || modConfig.generalConfig.offlinewhitelist) {
+        if (ModConfig.INSTANCE.generalConfig.whitelisting || ModConfig.INSTANCE.generalConfig.offlinewhitelist) {
             if (!minecraftHelper.isWhitelistingEnabled()) {
                 LOGGER.error("Server Side Whitelist is disabled. Whitelist commands will not work!");
             } else {
@@ -443,7 +439,7 @@ public final class BotController {
      * @return True if whitelisted, false if not
      */
     public boolean isPlayerWhitelisted(String username, String uuid) {
-        if (modConfig.generalConfig.whitelisting) {
+        if (ModConfig.INSTANCE.generalConfig.whitelisting) {
             whitelistTable = new WhitelistTable();
             List<WhitelistTable> tableList = whitelistTable.fetchAll("username = '" + username + "' AND uuid = '" + uuid + "'");
             return !tableList.isEmpty();
@@ -488,10 +484,6 @@ public final class BotController {
 
     public CommandClient getCommandClient() {
         return commandClient;
-    }
-
-    public ConfigController getConfigController() {
-        return configController;
     }
 
     public DatabaseEngine getDatabaseEngine() {

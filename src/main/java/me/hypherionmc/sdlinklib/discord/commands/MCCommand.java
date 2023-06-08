@@ -25,13 +25,12 @@ package me.hypherionmc.sdlinklib.discord.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.config.configobjects.LinkedCommandsConfig;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import net.dv8tion.jda.api.entities.Role;
 
 import java.util.Optional;
-
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 @Deprecated // Since v3.0.12 - For Removal
 public class MCCommand extends Command {
@@ -51,12 +50,12 @@ public class MCCommand extends Command {
 
     @Override
     protected void execute(CommandEvent event) {
-        if (event.getChannel().getIdLong() != modConfig.channelConfig.consoleChannelID) {
+        if (event.getChannel().getIdLong() != ModConfig.INSTANCE.channelConfig.consoleChannelID) {
             event.reply("You can only execute MC commands in the Console Channel");
             return;
         }
 
-        if (modConfig.linkedCommands.enabled) {
+        if (ModConfig.INSTANCE.linkedCommands.enabled) {
             String[] cmdArgs = event.getArgs().split(" ");
 
             String slug = cmdArgs[0] != null ? cmdArgs[0] : "";
@@ -72,7 +71,7 @@ public class MCCommand extends Command {
                 }
             }
 
-            Optional<LinkedCommandsConfig.Command> linkedCommand = modConfig.linkedCommands.commands.stream().filter(c -> c.discordCommand.equalsIgnoreCase(slug)).findFirst();
+            Optional<LinkedCommandsConfig.Command> linkedCommand = ModConfig.INSTANCE.linkedCommands.commands.stream().filter(c -> c.discordCommand.equalsIgnoreCase(slug)).findFirst();
 
             linkedCommand.ifPresent(command -> {
                 if (!command.discordRole.isEmpty()) {

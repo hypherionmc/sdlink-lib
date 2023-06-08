@@ -23,6 +23,7 @@
  */
 package me.hypherionmc.sdlinklib.utils;
 
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.discord.DiscordMessage;
 import me.hypherionmc.sdlinklib.discord.messages.MessageAuthor;
@@ -44,7 +45,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 @Plugin(name = "SDLinkLogging", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
 public class LogReader extends AbstractAppender {
@@ -118,7 +118,7 @@ public class LogReader extends AbstractAppender {
 
                         DiscordMessage message = new DiscordMessage.Builder(botEngine, MessageType.CONSOLE).withMessage(logs).withAuthor(MessageAuthor.SERVER).build();
 
-                        if (modConfig.messageConfig.sendConsoleMessages) {
+                        if (ModConfig.INSTANCE.messageConfig.sendConsoleMessages) {
                             message.sendMessage();
                         }
 
@@ -128,7 +128,7 @@ public class LogReader extends AbstractAppender {
                     try {
                         Thread.sleep(30);
                     } catch (InterruptedException e) {
-                        if (modConfig.generalConfig.debugging) {
+                        if (ModConfig.INSTANCE.generalConfig.debugging) {
                             BotController.LOGGER.error("Failed to send console message: {}", e.getMessage());
                         }
                     }

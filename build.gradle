@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'maven-publish'
     id "com.diffplug.spotless" version "6.13.0"
 }
@@ -13,35 +13,31 @@ def baseVersion = "${version_major}.${version_minor}.${version_patch}"
 
 group 'me.hypherionmc.sdlink'
 version = baseVersion + (oshi_hack ? "h" : "")
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
     maven { url "https://maven.firstdarkdev.xyz/releases" }
     maven { url "https://maven.firstdarkdev.xyz/snapshots" }
     maven { url "https://m2.dv8tion.net/releases" }
-    maven { url "https://m2.chew.pro/releases" }
-    maven { url "https://m2.chew.pro/snapshots" }
     maven { url "https://nexus.velocitypowered.com/repository/maven-public/" }
 }
 
 configurations {
     shade
     shade.transitive = true
-    compile.extendsFrom(shade)
+    implementation.extendsFrom(shade)
 }
 
 dependencies {
     // Compile Only, Not Shadowed
 
     // Logging
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4j_ver
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j_ver
-    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: log4j_ver
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4j_ver
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j_ver
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: log4j_ver
 
     // Utilities
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
 
     // Core Dependencies, Shadowed
 
@@ -55,8 +51,9 @@ dependencies {
     shade group: 'org.json', name: 'json', version: json_ver
     shade group: 'com.github.oshi', name: 'oshi-core', version: oshi_ver
 
-    shade "me.hypherionmc.moon-config:core:${moonconf_ver}"
-    shade "me.hypherionmc.moon-config:toml:${moonconf_ver}"
+    compileOnly "me.hypherionmc.moon-config:core:${moon_conf}"
+    compileOnly "me.hypherionmc.moon-config:toml:${moon_conf}"
+    compileOnly "me.hypherionmc.craterlib:CraterLib-common-1.20:${craterlib}:config"
     shade("me.hypherionmc:JQLite:${jqlite_ver}") { exclude(group: 'org.apache.commons') }
 }
 
@@ -108,7 +105,7 @@ shadowJar {
         relocate 'com.iwebpp', 'hypshadow.iwebpp'
         relocate 'com.jagrosh', 'hypshadow.jagrosh'
         relocate 'com.neovisionaries', 'hypshadow.neovisionaries'
-        relocate 'me.hypherionmc.nightconfig', 'hypshadow.hypherionmc.nightconfig'
+        relocate 'me.hypherionmc.moonconfig', 'shadow.hypherionmc.moonconfig'
         relocate 'me.hypherionmc.jqlite', 'hypshadow.hypherionmc.jqlite'
         relocate 'net.dv8tion', 'hypshadow.dv8tion'
         relocate 'okhttp3', 'hypshadow.okhttp3'
@@ -119,7 +116,7 @@ shadowJar {
         relocate 'kotlin', 'hypshadow.kotlin'
     }
     exclude 'META-INF/maven/**'
-    classifier ''
+    setArchiveClassifier('')
 }
 
 publishing {

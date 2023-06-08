@@ -23,6 +23,7 @@
  */
 package me.hypherionmc.sdlinklib.discord;
 
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.discord.slashcommands.ServerStatusSlashCommand;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
@@ -37,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 import static me.hypherionmc.sdlinklib.discord.BotController.threadPool;
 
 /**
@@ -57,7 +57,7 @@ public class DiscordEventHandler extends ListenerAdapter {
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         try {
-            if (event.getChannel().getIdLong() != modConfig.channelConfig.channelID)
+            if (event.getChannel().getIdLong() != ModConfig.INSTANCE.channelConfig.channelID)
                 return;
 
             if (event.isWebhookMessage())
@@ -66,15 +66,15 @@ public class DiscordEventHandler extends ListenerAdapter {
             if (event.getAuthor() == event.getJDA().getSelfUser())
                 return;
 
-            if (event.getAuthor().isBot() && modConfig.chatConfig.ignoreBots)
+            if (event.getAuthor().isBot() && ModConfig.INSTANCE.chatConfig.ignoreBots)
                 return;
 
-            if (modConfig.generalConfig.debugging) {
+            if (ModConfig.INSTANCE.generalConfig.debugging) {
                 BotController.LOGGER.info("Sending Message from {}: {}", event.getAuthor().getName(), event.getMessage().getContentStripped());
             }
             minecraftHelper.discordMessageEvent(event.getMember().getEffectiveName(), event.getMessage().getContentRaw());
         } catch (Exception e) {
-            if (modConfig.generalConfig.debugging) {
+            if (ModConfig.INSTANCE.generalConfig.debugging) {
                 e.printStackTrace();
             }
         }
@@ -88,33 +88,33 @@ public class DiscordEventHandler extends ListenerAdapter {
             threadPool.scheduleAtFixedRate(() -> {
                 try {
                     if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
-                        Activity act = Activity.of(modConfig.botConfig.botStatusType, modConfig.botConfig.botStatus
+                        Activity act = Activity.of(ModConfig.INSTANCE.botConfig.botStatusType, ModConfig.INSTANCE.botConfig.botStatus
                                 .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
                                 .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())));
 
-                        if (modConfig.botConfig.botStatusType == Activity.ActivityType.STREAMING) {
-                            act = Activity.of(modConfig.botConfig.botStatusType, modConfig.botConfig.botStatus
+                        if (ModConfig.INSTANCE.botConfig.botStatusType == Activity.ActivityType.STREAMING) {
+                            act = Activity.of(ModConfig.INSTANCE.botConfig.botStatusType, ModConfig.INSTANCE.botConfig.botStatus
                                             .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
                                             .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount())),
-                                    modConfig.botConfig.botStatusStreamingURL);
+                                    ModConfig.INSTANCE.botConfig.botStatusStreamingURL);
                         }
 
                         event.getJDA().getPresence().setActivity(act);
                     }
                 } catch (Exception e) {
-                    if (modConfig.generalConfig.debugging) {
+                    if (ModConfig.INSTANCE.generalConfig.debugging) {
                         BotController.LOGGER.info(e.getMessage());
                     }
                 }
-            }, modConfig.botConfig.activityUpdateInterval, modConfig.botConfig.activityUpdateInterval, TimeUnit.SECONDS);
+            }, ModConfig.INSTANCE.botConfig.activityUpdateInterval, ModConfig.INSTANCE.botConfig.activityUpdateInterval, TimeUnit.SECONDS);
 
             threadPool.scheduleAtFixedRate(() -> {
-                if (modConfig.botConfig.doTopicUpdates) {
+                if (ModConfig.INSTANCE.botConfig.doTopicUpdates) {
                     try {
-                        if (event.getJDA().getStatus() == JDA.Status.CONNECTED && (modConfig.botConfig.channelTopic != null && !modConfig.botConfig.channelTopic.isEmpty())) {
-                            TextChannel channel = event.getJDA().getTextChannelById(modConfig.channelConfig.channelID);
+                        if (event.getJDA().getStatus() == JDA.Status.CONNECTED && (ModConfig.INSTANCE.botConfig.channelTopic != null && !ModConfig.INSTANCE.botConfig.channelTopic.isEmpty())) {
+                            TextChannel channel = event.getJDA().getTextChannelById(ModConfig.INSTANCE.channelConfig.channelID);
                             if (channel != null) {
-                                String topic = modConfig.botConfig.channelTopic
+                                String topic = ModConfig.INSTANCE.botConfig.channelTopic
                                         .replace("%players%", String.valueOf(minecraftHelper.getOnlinePlayerCount()))
                                         .replace("%maxplayers%", String.valueOf(minecraftHelper.getMaxPlayerCount()))
                                         .replace("%uptime%", SystemUtils.secondsToTimestamp(minecraftHelper.getServerUptime()));
@@ -122,7 +122,7 @@ public class DiscordEventHandler extends ListenerAdapter {
                             }
                         }
                     } catch (Exception e) {
-                        if (modConfig.generalConfig.debugging) {
+                        if (ModConfig.INSTANCE.generalConfig.debugging) {
                             BotController.LOGGER.info(e.getMessage());
                         }
                     }

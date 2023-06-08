@@ -26,12 +26,11 @@ package me.hypherionmc.sdlinklib.discord;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.SlashCommand;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.discord.commands.*;
 import me.hypherionmc.sdlinklib.discord.slashcommands.*;
 
 import java.util.HashMap;
-
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 /**
  * @author HypherionSA
@@ -49,23 +48,23 @@ public class CommandManager {
     }
 
     private void addCommands() {
-        if (modConfig.botCommands.allowPlayerList) {
+        if (ModConfig.INSTANCE.botCommands.allowPlayerList) {
             commands.put(new PlayerListCommand(botController), new PlayerListSlashCommand(botController));
         }
 
-        if (modConfig.botCommands.allowServerStatus) {
+        if (ModConfig.INSTANCE.botCommands.allowServerStatus) {
             commands.put(new ServerStatusCommand(botController), new ServerStatusSlashCommand(botController));
         }
 
-        if (modConfig.generalConfig.offlinewhitelist) {
+        if (ModConfig.INSTANCE.generalConfig.offlinewhitelist) {
             commands.put(new OfflineWhitelist(botController), new OfflineWhitelistSlashCommand(botController));
         }
 
-        if (modConfig.generalConfig.whitelisting) {
+        if (ModConfig.INSTANCE.generalConfig.whitelisting) {
             commands.put(new WhitelistCommand(botController), new WhitelistSlashCommand(botController));
         }
 
-        if (modConfig.botCommands.accountLinking) {
+        if (ModConfig.INSTANCE.botCommands.accountLinking) {
             commands.put(new LinkCommand(botController), new LinkSlashCommand(botController));
             commands.put(new UnLinkCommand(botController), new LinkSlashCommand.RemoveLinkSlashCommand(botController));
             commands.put(new LinkedCommand(botController), new LinkedAccountsSlashCommand(botController));
@@ -73,7 +72,7 @@ public class CommandManager {
 
         commands.put(new HelpCommand(botController), new HelpSlashCommand(botController));
 
-        if (modConfig.linkedCommands.enabled) {
+        if (ModConfig.INSTANCE.linkedCommands.enabled) {
             commands.put(new MCCommand(botController), new MCSlashCommand(botController));
         }
     }
@@ -81,7 +80,7 @@ public class CommandManager {
     public void register(CommandClient commandClient) {
         commands.forEach((cmd, slash) -> {
             commandClient.addCommand(cmd);
-            if (slash != null && modConfig.botConfig.slashCommands) {
+            if (slash != null && ModConfig.INSTANCE.botConfig.slashCommands) {
                 commandClient.addSlashCommand(slash);
             }
         });

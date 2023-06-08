@@ -26,6 +26,7 @@ package me.hypherionmc.sdlinklib.discord.slashcommands;
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import me.hypherionmc.jqlite.data.SQLiteTable;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
@@ -39,8 +40,6 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 /**
  * @author HypherionSA
@@ -113,7 +112,7 @@ public class LinkSlashCommand extends SlashCommand {
                     try {
                         event.getMember().modifyNickname(null).queue();
                     } catch (Exception e) {
-                        if (modConfig.generalConfig.debugging) {
+                        if (ModConfig.INSTANCE.generalConfig.debugging) {
                             e.printStackTrace();
                         }
                     }

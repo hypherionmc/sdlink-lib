@@ -27,14 +27,13 @@ import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.config.configobjects.MessageChannelsConfig;
 import me.hypherionmc.sdlinklib.discord.messages.MessageAuthor;
 import me.hypherionmc.sdlinklib.discord.messages.MessageType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
 import org.apache.commons.lang3.tuple.Pair;
-
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 /**
  * @author HypherionSA
@@ -49,12 +48,14 @@ public final class DiscordMessage {
 
     private final MessageAuthor messageAuthor;
     private final String message;
+    private final Runnable afterSend;
 
     private DiscordMessage(Builder builder) {
         controller = builder.controller;
         messageType = builder.messageType;
         messageAuthor = builder.author;
         message = builder.message;
+        this.afterSend = builder.afterSend;
     }
 
     /**
@@ -70,6 +71,7 @@ public final class DiscordMessage {
         // Optional Variables
         private MessageAuthor author;
         private String message;
+        private Runnable afterSend;
 
         public Builder(BotController controller, MessageType messageType) {
             this.controller = controller;
@@ -94,6 +96,11 @@ public final class DiscordMessage {
             return this;
         }
 
+        public Builder runAfterSend(Runnable afterSend) {
+            this.afterSend = afterSend;
+            return this;
+        }
+
         public DiscordMessage build() {
             if (this.author == null) {
                 this.author = MessageAuthor.SERVER;
@@ -103,10 +110,10 @@ public final class DiscordMessage {
                 this.message = "";
             } else {
                 if (messageType == MessageType.CHAT) {
-                    if (modConfig.messageConfig.chat.contains("%player%")) {
-                        message = modConfig.messageConfig.chat.replace("%player%", author.getUsername()).replace("%message%", message);
+                    if (ModConfig.INSTANCE.messageConfig.chat.contains("%player%")) {
+                        message = ModConfig.INSTANCE.messageConfig.chat.replace("%player%", author.getUsername()).replace("%message%", message);
                     } else {
-                        if (!modConfig.webhookConfig.enabled || controller.getChatWebhookClient() == null) {
+                        if (!ModConfig.INSTANCE.webhookConfig.enabled || controller.getChatWebhookClient() == null) {
                             message = author.getUsername() + ": " + message;
                         }
                     }
@@ -126,7 +133,7 @@ public final class DiscordMessage {
             if (messageType == MessageType.CONSOLE) {
                 sendConsoleMessage();
             } else {
-                if (modConfig.webhookConfig.enabled) {
+                if (ModConfig.INSTANCE.webhookConfig.enabled) {
                     sendWebhookMessage();
                 } else {
                     sendStandardMessage();
@@ -159,7 +166,10 @@ public final class DiscordMessage {
             builder.setContent(message);
         }
 
-        webhook.getLeft().send(builder.build());
+        webhook.getLeft().send(builder.build()).thenRun(() -> {
+            if (afterSend != null)
+                afterSend.run();
+        });
     }
 
     private void sendStandardMessage() {
@@ -169,9 +179,15 @@ public final class DiscordMessage {
 
         if (channel.getLeft() != null) {
             if (channel.getRight()) {
-                channel.getLeft().sendMessageEmbeds(builder.build()).queue();
+                channel.getLeft().sendMessageEmbeds(builder.build()).queue(success -> {
+                    if (afterSend != null)
+                        afterSend.run();
+                });
             } else {
-                channel.getLeft().sendMessage(message).queue();
+                channel.getLeft().sendMessage(message).queue(success -> {
+                    if (afterSend != null)
+                        afterSend.run();
+                });
             }
         }
     }
@@ -180,11 +196,11 @@ public final class DiscordMessage {
         String user = this.messageAuthor.getUsername();
         String finalMsg = message;
 
-        if (messageType == MessageType.CHAT && modConfig.messageConfig.chat.contains("%player%")) {
+        if (messageType == MessageType.CHAT && ModConfig.INSTANCE.messageConfig.chat.contains("%player%")) {
             user = MessageAuthor.SERVER.getUsername();
         }
 
-        if (messageType == MessageType.CHAT && !modConfig.messageConfig.chat.contains("%player%")) {
+        if (messageType == MessageType.CHAT && !ModConfig.INSTANCE.messageConfig.chat.contains("%player%")) {
             finalMsg = message.replace(messageAuthor.getUsername() + ": ", "");
         }
 
@@ -204,26 +220,29 @@ public final class DiscordMessage {
 
     private void sendConsoleMessage() {
         try {
-            if (controller.isBotReady() && modConfig.messageConfig.sendConsoleMessages) {
-                StandardGuildMessageChannel channel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.consoleChannelID);
+            if (controller.isBotReady() && ModConfig.INSTANCE.messageConfig.sendConsoleMessages) {
+                StandardGuildMessageChannel channel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, ModConfig.INSTANCE.channelConfig.consoleChannelID);
                 if (channel != null) {
-                    channel.sendMessage(message).queue();
+                    channel.sendMessage(message).queue(success -> {
+                        if (afterSend != null)
+                            afterSend.run();
+                    });
                 }
             }
         } catch (Exception e) {
-            if (modConfig != null && modConfig.generalConfig.debugging) {
+            if (ModConfig.INSTANCE != null && ModConfig.INSTANCE.generalConfig.debugging) {
                 e.printStackTrace();
             }
         }
     }
 
     private Pair<StandardGuildMessageChannel, Boolean> getDestinationChannel() {
-        StandardGuildMessageChannel channel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.channelID);
-        StandardGuildMessageChannel eventChannel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.eventsID);
-        StandardGuildMessageChannel consoleChannel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, modConfig.channelConfig.consoleChannelID);
+        StandardGuildMessageChannel channel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, ModConfig.INSTANCE.channelConfig.channelID);
+        StandardGuildMessageChannel eventChannel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, ModConfig.INSTANCE.channelConfig.eventsID);
+        StandardGuildMessageChannel consoleChannel = controller.get_jda().getChannelById(StandardGuildMessageChannel.class, ModConfig.INSTANCE.channelConfig.consoleChannelID);
 
         if (messageType == MessageType.CHAT) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.chat;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.chat;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -236,7 +255,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.START_STOP) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.startStop;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.startStop;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -249,7 +268,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.JOIN_LEAVE) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.joinLeave;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.joinLeave;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -262,7 +281,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.ADVANCEMENT) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.advancements;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.advancements;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -275,7 +294,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.DEATH) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.death;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.death;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -288,7 +307,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.COMMAND) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.commands;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.commands;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -309,7 +328,7 @@ public final class DiscordMessage {
         WebhookClient consoleChannel = controller.getConsoleWebhookClient();
 
         if (messageType == MessageType.CHAT) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.chat;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.chat;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -322,7 +341,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.START_STOP) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.startStop;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.startStop;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -335,7 +354,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.JOIN_LEAVE) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.joinLeave;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.joinLeave;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -348,7 +367,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.ADVANCEMENT) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.advancements;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.advancements;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -361,7 +380,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.DEATH) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.death;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.death;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);
@@ -374,7 +393,7 @@ public final class DiscordMessage {
         }
 
         if (messageType == MessageType.COMMAND) {
-            MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.commands;
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.commands;
 
             if (object.channel.isEvent() && eventChannel != null) {
                 return Pair.of(eventChannel, object.useEmbed);

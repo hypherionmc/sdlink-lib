@@ -26,6 +26,7 @@ package me.hypherionmc.sdlinklib.discord.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.jqlite.data.SQLiteTable;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.database.WhitelistTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
@@ -39,7 +40,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
 
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 import static me.hypherionmc.sdlinklib.discord.commands.UnLinkCommand.pattern;
 
 @Deprecated // Since v3.0.12 - For Removal
@@ -58,7 +58,7 @@ public class OfflineWhitelist extends Command {
         this.name = "olwhitelist";
         this.help = "Control Offline Whitelisting if enabled";
 
-        if (modConfig.generalConfig.adminWhitelistOnly) {
+        if (ModConfig.INSTANCE.generalConfig.adminWhitelistOnly) {
             this.userPermissions = new Permission[] { Permission.ADMINISTRATOR, Permission.KICK_MEMBERS };
         }
     }
@@ -79,7 +79,7 @@ public class OfflineWhitelist extends Command {
 
             event.reply(embedBuilder.build());
         } else {
-            if (!modConfig.generalConfig.offlinewhitelist) {
+            if (!ModConfig.INSTANCE.generalConfig.offlinewhitelist) {
                 event.reply("Offline Whitelisting is disabled");
                 return;
             }
@@ -87,7 +87,7 @@ public class OfflineWhitelist extends Command {
                 event.reply("Server Side whitelisting is disabled");
                 return;
             }
-            if (modConfig.generalConfig.adminWhitelistOnly && !SystemUtils.hasPermission(controller, event.getMember())) {
+            if (ModConfig.INSTANCE.generalConfig.adminWhitelistOnly && !SystemUtils.hasPermission(controller, event.getMember())) {
                 event.reply("Sorry, only staff members can use this command");
                 return;
             }
@@ -121,7 +121,7 @@ public class OfflineWhitelist extends Command {
                         event.getGuild().addRoleToMember(UserSnowflake.fromId(event.getMember().getId()), controller.getWhitelistedRole()).queue();
                     }
 
-                    if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
+                    if (ModConfig.INSTANCE.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                         String nickName = event.getMember().getEffectiveName();
                         player.linkAccount(nickName, event.getMember(), event.getGuild(), controller);
                         return;
@@ -162,7 +162,7 @@ public class OfflineWhitelist extends Command {
                         event.getGuild().removeRoleFromMember(UserSnowflake.fromId(event.getMember().getId()), controller.getWhitelistedRole()).queue();
                     }
 
-                    if (modConfig.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
+                    if (ModConfig.INSTANCE.generalConfig.linkedWhitelist && !SystemUtils.hasPermission(controller, event.getMember())) {
                         UserTable userTable = new UserTable();
                         List<UserTable> tables = userTable.fetchAll("discordID = '" + event.getAuthor().getIdLong() + "'");
 
@@ -174,7 +174,7 @@ public class OfflineWhitelist extends Command {
                                 try {
                                     event.getMember().modifyNickname(null).queue();
                                 } catch (Exception e) {
-                                    if (modConfig.generalConfig.debugging) {
+                                    if (ModConfig.INSTANCE.generalConfig.debugging) {
                                         e.printStackTrace();
                                     }
                                 }

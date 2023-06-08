@@ -26,6 +26,7 @@ package me.hypherionmc.sdlinklib.discord.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import me.hypherionmc.jqlite.data.SQLiteTable;
+import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.database.UserTable;
 import me.hypherionmc.sdlinklib.discord.BotController;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
@@ -34,8 +35,6 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 
 import java.util.List;
 import java.util.regex.Pattern;
-
-import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
 
 @Deprecated // Since v3.0.12 - For Removal
 public class UnLinkCommand extends Command {
@@ -69,7 +68,7 @@ public class UnLinkCommand extends Command {
                 try {
                     event.getMember().modifyNickname(null).queue();
                 } catch (Exception e) {
-                    if (modConfig.generalConfig.debugging) {
+                    if (ModConfig.INSTANCE.generalConfig.debugging) {
                         e.printStackTrace();
                     }
                 }
