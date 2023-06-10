@@ -23,8 +23,10 @@
  */
 package me.hypherionmc.sdlinklib.discord;
 
+import com.hypherionmc.craterlib.core.event.CraterEventBus;
 import me.hypherionmc.sdlinklib.config.ModConfig;
 import me.hypherionmc.sdlinklib.discord.slashcommands.ServerStatusSlashCommand;
+import me.hypherionmc.sdlinklib.events.SDLinkReadyEvent;
 import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 import me.hypherionmc.sdlinklib.utils.SystemUtils;
 import net.dv8tion.jda.api.JDA;
@@ -84,6 +86,7 @@ public class DiscordEventHandler extends ListenerAdapter {
     public void onReady(@NotNull ReadyEvent event) {
         if (event.getJDA().getStatus() == JDA.Status.CONNECTED) {
             BotController.LOGGER.info("Successfully connected to discord");
+            CraterEventBus.INSTANCE.postEvent(new SDLinkReadyEvent());
 
             threadPool.scheduleAtFixedRate(() -> {
                 try {

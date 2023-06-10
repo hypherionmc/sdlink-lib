@@ -71,10 +71,9 @@ public final class BotController {
     private CommandClient commandClient;
     private WebhookClient chatWebhookClient, eventWebhookClient, consoleWebhookClient;
     private Role adminRole;
-
     private Role whitelistedRole;
-
     private Role linkedRole;
+    private boolean shutdownCalled = false;
 
     // Database
     private final DatabaseEngine databaseEngine = new DatabaseEngine("sdlink-whitelist");
@@ -96,7 +95,10 @@ public final class BotController {
     public BotController(IMinecraftHelper minecraftHelper, Logger logger) {
         LOGGER = logger;
 
+        this.shutdownCalled = false;
+
         // Initialize Config and set Minecraft Helper Class
+        new ModConfig();
         this.minecraftHelper = minecraftHelper;
 
         // Register Database Tables
@@ -134,6 +136,9 @@ public final class BotController {
             return false;
 
         if (_jda == null)
+            return false;
+
+        if (shutdownCalled)
             return false;
 
         if (_jda.getStatus() == JDA.Status.SHUTTING_DOWN || _jda.getStatus() == JDA.Status.SHUTDOWN)
@@ -453,12 +458,8 @@ public final class BotController {
     }
 
     public void shutdownBot(boolean forced) {
+        this.shutdownCalled = true;
         if (_jda != null) {
-            OkHttpClient client = _jda.getHttpClient();
-            client.connectionPool().evictAll();
-            client.dispatcher().cancelAll();
-            client.dispatcher().executorService().shutdownNow();
-            _jda.shutdownNow();
             _jda.shutdown();
         }
         if (chatWebhookClient != null) {

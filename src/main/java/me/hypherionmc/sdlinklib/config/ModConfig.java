@@ -26,8 +26,10 @@ package me.hypherionmc.sdlinklib.config;
 import com.hypherionmc.craterlib.core.config.ModuleConfig;
 import com.hypherionmc.craterlib.core.config.annotations.NoConfigScreen;
 import me.hypherionmc.moonconfig.core.CommentedConfig;
+import me.hypherionmc.moonconfig.core.conversion.ObjectConverter;
 import me.hypherionmc.moonconfig.core.conversion.Path;
 import me.hypherionmc.moonconfig.core.conversion.SpecComment;
+import me.hypherionmc.moonconfig.core.file.CommentedFileConfig;
 import me.hypherionmc.sdlinklib.config.configobjects.*;
 import me.hypherionmc.sdlinklib.discord.BotController;
 
@@ -40,8 +42,10 @@ import java.io.File;
 @NoConfigScreen
 public class ModConfig extends ModuleConfig {
 
-    public static ModConfig INSTANCE = new ModConfig();
-    public static int configVer = 24;
+    // DO NOT REMOVE TRANSIENT HERE... OTHERWISE THE STUPID CONFIG LIBRARY
+    // WILL TRY TO WRITE THESE TO THE CONFIG
+    public transient static ModConfig INSTANCE;
+    public transient static int configVer = 24;
 
     @Path("general")
     @SpecComment("General Mod Config")
@@ -80,22 +84,31 @@ public class ModConfig extends ModuleConfig {
     public LinkedCommandsConfig linkedCommands = new LinkedCommandsConfig();
 
     public ModConfig() {
-        super("sdlink", "config/simple-discord-bot.toml");
+        super("sdlink", "simple-discord-bot");
         registerAndSetup(this);
     }
 
     @Override
-    public void updateConfigValues(CommentedConfig oldConfig, CommentedConfig newConfig, CommentedConfig outputConfig, String subKey) {
-        if (oldConfig.contains("general.configVersion") && oldConfig.getInt("general.configVersion") < 11) {
+    public void migrateConfig(ModuleConfig conf) {
+        CommentedFileConfig config = CommentedFileConfig.builder(getConfigPath()).build();
+        CommentedFileConfig newConfig = CommentedFileConfig.builder(getConfigPath()).build();
+        config.load();
+
+        if (config.contains("general.configVersion") && config.getInt("general.configVersion") < 11) {
             getConfigPath().renameTo(new File(getConfigPath().getAbsolutePath().replace(".toml", ".old")));
-            saveConfig(new ModConfig());
+            saveConfig(this);
             BotController.LOGGER.info("Your config file cannot be auto-upgraded. The old one has been backed up and a new one created. Please re-configure the mod");
             return;
         }
 
-        if (!oldConfig.contains("general.configVersion") || oldConfig.getInt("general.configVersion") != configVer) {
-            super.updateConfigValues(oldConfig, newConfig, outputConfig, subKey);
+        if (!config.contains("general.configVersion") || config.getInt("general.configVersion") != configVer) {
+            new ObjectConverter().toConfig(conf, newConfig);
+            this.updateConfigValues(config, newConfig, newConfig, "");
+            newConfig.save();
         }
+
+        config.close();
+        newConfig.close();
     }
 
     @Override

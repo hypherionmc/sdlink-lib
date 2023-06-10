@@ -129,6 +129,9 @@ public final class DiscordMessage {
         if (controller.get_jda() == null)
             return;
 
+        if (!controller.isBotReady())
+            return;
+
         try {
             if (messageType == MessageType.CONSOLE) {
                 sendConsoleMessage();

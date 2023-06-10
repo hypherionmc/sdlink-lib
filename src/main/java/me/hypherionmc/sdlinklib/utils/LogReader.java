@@ -79,6 +79,9 @@ public class LogReader extends AbstractAppender {
     public void append(LogEvent event) {
         if (botEngine.isBotReady()) {
             if (event.getLevel().intLevel() < Level.DEBUG.intLevel()) {
+                if (event.getMessage().getFormattedMessage().contains("Discord Invite Link"))
+                    return;
+
                 logs += formatMessage(event) + "\n";
                 scheduleMessage();
             }

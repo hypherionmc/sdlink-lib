@@ -54,6 +54,7 @@ dependencies {
     compileOnly "me.hypherionmc.moon-config:core:${moon_conf}"
     compileOnly "me.hypherionmc.moon-config:toml:${moon_conf}"
     compileOnly "me.hypherionmc.craterlib:CraterLib-common-1.20:${craterlib}:config"
+    compileOnly "me.hypherionmc.craterlib:CraterLib-common-1.20:${craterlib}:events"
     shade("me.hypherionmc:JQLite:${jqlite_ver}") { exclude(group: 'org.apache.commons') }
 }
 
