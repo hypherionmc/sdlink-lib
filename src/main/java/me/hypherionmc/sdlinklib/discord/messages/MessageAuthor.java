@@ -28,28 +28,34 @@ import me.hypherionmc.sdlinklib.services.helpers.IMinecraftHelper;
 
 public class MessageAuthor {
 
-    public static final MessageAuthor SERVER = new MessageAuthor(ModConfig.INSTANCE.webhookConfig.serverName, ModConfig.INSTANCE.webhookConfig.serverAvatar, true);
+    public static final MessageAuthor SERVER = new MessageAuthor(ModConfig.INSTANCE.webhookConfig.serverName, ModConfig.INSTANCE.webhookConfig.serverAvatar, "server", true);
 
+    private final String displayName;
     private final String username;
     private final String avatar;
     private final boolean isServer;
 
-    private MessageAuthor(String username, String avatar, boolean isServer) {
+    private MessageAuthor(String displayName, String avatar, String username, boolean isServer) {
+        this.displayName = displayName;
         this.username = username;
         this.avatar = avatar;
         this.isServer = isServer;
     }
 
-    public static MessageAuthor of(String username, String uuid, IMinecraftHelper minecraftHelper) {
+    public static MessageAuthor of(String displayName, String uuid, String username, IMinecraftHelper minecraftHelper) {
         if (minecraftHelper.isOnlineMode()) {
-            return new MessageAuthor(username, ModConfig.INSTANCE.chatConfig.playerAvatarType.getUrl().replace("{uuid}", uuid), false);
+            return new MessageAuthor(displayName, ModConfig.INSTANCE.chatConfig.playerAvatarType.getUrl().replace("{uuid}", uuid), username, false);
         } else {
-            return new MessageAuthor(username, ModConfig.INSTANCE.chatConfig.playerAvatarType.getUrl().replace("{uuid}", username), false);
+            return new MessageAuthor(displayName, ModConfig.INSTANCE.chatConfig.playerAvatarType.getUrl().replace("{uuid}", username), username, false);
         }
     }
 
     public String getAvatar() {
         return avatar;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     public String getUsername() {

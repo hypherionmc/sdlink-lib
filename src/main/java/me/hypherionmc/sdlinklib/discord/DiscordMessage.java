@@ -408,6 +408,19 @@ public final class DiscordMessage {
             return Pair.of(channel, object.useEmbed);
         }
 
+        if (messageType == MessageType.CUSTOM) {
+            MessageChannelsConfig.DestinationObject object = ModConfig.INSTANCE.messageDestinations.chat;
+
+            if (object.channel.isEvent() && eventChannel != null) {
+                return Pair.of(eventChannel, object.useEmbed);
+            }
+            if (object.channel.isConsole() && consoleChannel != null) {
+                return Pair.of(consoleChannel, object.useEmbed);
+            }
+
+            return Pair.of(channel, object.useEmbed);
+        }
+
         return Pair.of(null, false);
     }
 
