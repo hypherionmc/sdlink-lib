@@ -116,6 +116,8 @@ public class LogReader extends AbstractAppender {
                             logs = logs.substring(0, 1999);
                         }
 
+                        logs = logs.replaceAll("\\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\\b", "[REDACTED]");
+
                         DiscordMessage message = new DiscordMessage.Builder(botEngine, MessageType.CONSOLE).withMessage(logs).withAuthor(MessageAuthor.SERVER).build();
 
                         if (modConfig.messageConfig.sendConsoleMessages) {
