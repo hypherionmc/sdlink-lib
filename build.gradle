@@ -21,8 +21,6 @@ repositories {
     maven { url "https://maven.firstdarkdev.xyz/releases" }
     maven { url "https://maven.firstdarkdev.xyz/snapshots" }
     maven { url "https://m2.dv8tion.net/releases" }
-    maven { url "https://m2.chew.pro/releases" }
-    maven { url "https://m2.chew.pro/snapshots" }
     maven { url "https://nexus.velocitypowered.com/repository/maven-public/" }
 }
 
@@ -118,6 +116,7 @@ shadowJar {
         relocate 'oshi', 'hypshadow.oshi'
         relocate 'kotlin', 'hypshadow.kotlin'
     }
+    mergeServiceFiles()
     exclude 'META-INF/maven/**'
     classifier ''
 }
