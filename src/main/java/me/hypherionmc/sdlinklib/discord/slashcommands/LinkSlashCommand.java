@@ -55,7 +55,9 @@ public class LinkSlashCommand extends SlashCommand {
         this.guildOnly = true;
         this.name = "link";
         this.help = "Link your Minecraft and Discord account together";
-        this.botPermissions = new Permission[] { Permission.NICKNAME_MANAGE };
+        if (modConfig.generalConfig.modifyNickname) {
+            this.botPermissions = new Permission[] { Permission.NICKNAME_MANAGE };
+        }
 
         this.options = Collections.singletonList(new OptionData(OptionType.STRING, "mcname", "Your Minecraft Username").setRequired(true));
     }
@@ -95,7 +97,9 @@ public class LinkSlashCommand extends SlashCommand {
             this.guildOnly = true;
             this.name = "unlink";
             this.help = "Unlink your Minecraft and Discord account";
-            this.botPermissions = new Permission[] { Permission.NICKNAME_MANAGE };
+            if (modConfig.generalConfig.modifyNickname) {
+                this.botPermissions = new Permission[] { Permission.NICKNAME_MANAGE };
+            }
         }
 
         @Override
@@ -109,7 +113,7 @@ public class LinkSlashCommand extends SlashCommand {
                 tables.forEach(SQLiteTable::delete);
 
                 String nickName = event.getMember().getEffectiveName();
-                if (pattern.matcher(nickName).find()) {
+                if (pattern.matcher(nickName).find() && modConfig.generalConfig.modifyNickname) {
                     try {
                         event.getMember().modifyNickname(null).queue();
                     } catch (Exception e) {

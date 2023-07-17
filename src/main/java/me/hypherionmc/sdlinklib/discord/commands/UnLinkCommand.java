@@ -51,7 +51,9 @@ public class UnLinkCommand extends Command {
 
         this.name = "unlink";
         this.help = "Unlink your Minecraft and Discord account";
-        this.botPermissions = new Permission[] { Permission.NICKNAME_MANAGE };
+        if (modConfig.generalConfig.modifyNickname) {
+            this.botPermissions = new Permission[] { Permission.NICKNAME_MANAGE };
+        }
     }
 
     @Override
@@ -65,7 +67,7 @@ public class UnLinkCommand extends Command {
             tables.forEach(SQLiteTable::delete);
 
             String nickName = event.getMember().getEffectiveName();
-            if (pattern.matcher(nickName).find()) {
+            if (pattern.matcher(nickName).find() && modConfig.generalConfig.modifyNickname) {
                 try {
                     event.getMember().modifyNickname(null).queue();
                 } catch (Exception e) {

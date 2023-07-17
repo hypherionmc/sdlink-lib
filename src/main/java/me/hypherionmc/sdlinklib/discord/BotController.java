@@ -284,7 +284,7 @@ public final class BotController {
                                 errCount.incrementAndGet();
                                 builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Change Nickname").append("\r\n");
                             }
-                            if (!botPerms.contains(Permission.NICKNAME_MANAGE)) {
+                            if (modConfig.generalConfig.modifyNickname && !botPerms.contains(Permission.NICKNAME_MANAGE)) {
                                 errCount.incrementAndGet();
                                 builder.append(errCount.get()).append(") ").append("Missing Bot Permission: Manage Nicknames").append("\r\n");
                             }

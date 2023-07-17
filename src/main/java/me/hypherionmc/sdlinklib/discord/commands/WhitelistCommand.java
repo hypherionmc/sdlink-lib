@@ -174,7 +174,7 @@ public class WhitelistCommand extends Command {
                             tables.forEach(SQLiteTable::delete);
 
                             String nickName = event.getMember().getEffectiveName();
-                            if (pattern.matcher(nickName).find()) {
+                            if (pattern.matcher(nickName).find() && modConfig.generalConfig.modifyNickname) {
                                 try {
                                     event.getMember().modifyNickname(null).queue();
                                 } catch (Exception e) {

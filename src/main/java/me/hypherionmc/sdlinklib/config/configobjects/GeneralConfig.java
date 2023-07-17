@@ -57,6 +57,10 @@ public class GeneralConfig {
     @SpecComment("If a role ID (or name) is defined here, it will be assigned to players when they are whitelisted")
     public String autoWhitelistRole = "";
 
+    @Path("modifyNickname")
+    @SpecComment("Modify user nickname when their accounts are linked")
+    public boolean modifyNickname = false;
+
     @Path("linkedRole")
     @SpecComment("If a role ID (or name) is defined here, it will be assigned to players when their MC and Discord accounts are linked")
     public String linkedRole = "";

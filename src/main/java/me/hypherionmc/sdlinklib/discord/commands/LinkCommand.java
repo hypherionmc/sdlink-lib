@@ -29,6 +29,8 @@ import me.hypherionmc.sdlinklib.utils.MinecraftPlayer;
 import me.hypherionmc.sdlinklib.utils.Result;
 import net.dv8tion.jda.api.Permission;
 
+import static me.hypherionmc.sdlinklib.config.ConfigController.modConfig;
+
 @Deprecated // Since v3.0.12 - For Removal
 public class LinkCommand extends BaseCommand {
 
@@ -41,7 +43,9 @@ public class LinkCommand extends BaseCommand {
 
         this.name = "link";
         this.help = "Link your Minecraft and Discord account together";
-        this.botPermissions = new Permission[] { Permission.NICKNAME_MANAGE };
+        if (modConfig.generalConfig.modifyNickname) {
+            this.botPermissions = new Permission[] { Permission.NICKNAME_MANAGE };
+        }
     }
 
     @Override
