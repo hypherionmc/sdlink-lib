@@ -51,11 +51,6 @@ public class MCCommand extends Command {
 
     @Override
     protected void execute(CommandEvent event) {
-        if (event.getChannel().getIdLong() != modConfig.channelConfig.consoleChannelID) {
-            event.reply("You can only execute MC commands in the Console Channel");
-            return;
-        }
-
         if (modConfig.linkedCommands.enabled) {
             String[] cmdArgs = event.getArgs().split(" ");
 

@@ -53,11 +53,6 @@ public class MCSlashCommand extends SlashCommand {
 
     @Override
     protected void execute(SlashCommandEvent event) {
-        if (event.getChannel().getIdLong() != modConfig.channelConfig.consoleChannelID) {
-            event.reply("You can only execute MC commands in the Console Channel").setEphemeral(true).queue();
-            return;
-        }
-
         if (modConfig.linkedCommands.enabled) {
             String slug = event.getOption("slug") != null ? event.getOption("slug").getAsString() : "";
             String args = event.getOption("args") != null ? event.getOption("args").getAsString() : "";
