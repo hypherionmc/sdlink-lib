@@ -30,5 +30,6 @@ public enum MessageType {
     ADVANCEMENT,
     DEATH,
     COMMAND,
-    CONSOLE
+    CONSOLE,
+    CUSTOM
 }

@@ -108,11 +108,13 @@ public class MinecraftPlayer {
 
         nickname += suffix;
 
-        try {
-            member.modifyNickname(nickname).queue();
-        } catch (Exception e) {
-            if (modConfig.generalConfig.debugging) {
-                e.printStackTrace();
+        if (modConfig.generalConfig.modifyNickname) {
+            try {
+                member.modifyNickname(nickname).queue();
+            } catch (Exception e) {
+                if (modConfig.generalConfig.debugging) {
+                    e.printStackTrace();
+                }
             }
         }
 
