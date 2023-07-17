@@ -308,7 +308,7 @@ public final class DiscordMessage {
         WebhookClient eventChannel = controller.getEventWebhookClient();
         WebhookClient consoleChannel = controller.getConsoleWebhookClient();
 
-        if (messageType == MessageType.CHAT) {
+        if (messageType == MessageType.CHAT || messageType == MessageType.CUSTOM) {
             MessageChannelsConfig.DestinationObject object = modConfig.messageDestinations.chat;
 
             if (object.channel.isEvent() && eventChannel != null) {
