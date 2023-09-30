@@ -104,10 +104,10 @@ public final class DiscordMessage {
             } else {
                 if (messageType == MessageType.CHAT) {
                     if (modConfig.messageConfig.chat.contains("%player%")) {
-                        message = modConfig.messageConfig.chat.replace("%player%", author.getUsername()).replace("%message%", message);
+                        message = modConfig.messageConfig.chat.replace("%player%", author.getDisplayName()).replace("%message%", message);
                     } else {
                         if (!modConfig.webhookConfig.enabled || controller.getChatWebhookClient() == null) {
-                            message = author.getUsername() + ": " + message;
+                            message = author.getDisplayName() + ": " + message;
                         }
                     }
                 }
@@ -140,7 +140,7 @@ public final class DiscordMessage {
     private void sendWebhookMessage() {
         WebhookMessageBuilder builder = new WebhookMessageBuilder();
 
-        builder.setUsername(this.messageAuthor.getUsername());
+        builder.setUsername(this.messageAuthor.getDisplayName());
 
         if (!this.messageAuthor.getAvatar().isEmpty()) {
             builder.setAvatarUrl(this.messageAuthor.getAvatar());
@@ -177,15 +177,15 @@ public final class DiscordMessage {
     }
 
     private EmbedBuilder getEmbed(boolean withAuthor) {
-        String user = this.messageAuthor.getUsername();
+        String user = this.messageAuthor.getDisplayName();
         String finalMsg = message;
 
         if (messageType == MessageType.CHAT && modConfig.messageConfig.chat.contains("%player%")) {
-            user = MessageAuthor.SERVER.getUsername();
+            user = MessageAuthor.SERVER.getDisplayName();
         }
 
         if (messageType == MessageType.CHAT && !modConfig.messageConfig.chat.contains("%player%")) {
-            finalMsg = message.replace(messageAuthor.getUsername() + ": ", "");
+            finalMsg = message.replace(messageAuthor.getDisplayName() + ": ", "");
         }
 
         EmbedBuilder builder = new EmbedBuilder();

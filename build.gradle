@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'maven-publish'
     id "com.diffplug.spotless" version "6.13.0"
 }
@@ -27,19 +27,19 @@ repositories {
 configurations {
     shade
     shade.transitive = true
-    compile.extendsFrom(shade)
+    implementation.extendsFrom(shade)
 }
 
 dependencies {
     // Compile Only, Not Shadowed
 
     // Logging
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4j_ver
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j_ver
-    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: log4j_ver
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4j_ver
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j_ver
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: log4j_ver
 
     // Utilities
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: commons_ver
 
     // Core Dependencies, Shadowed
 
@@ -118,7 +118,7 @@ shadowJar {
     }
     mergeServiceFiles()
     exclude 'META-INF/maven/**'
-    classifier ''
+    setArchiveClassifier('')
 }
 
 publishing {
